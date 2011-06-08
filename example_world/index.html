@@ -1,0 +1,83 @@
+<html>
+<head>
+    <link rel="stylesheet" href="leaflet.css" />
+    
+    <style type="text/css">
+    #players {
+        position: absolute;
+        right: 0px;
+        top: 0px;
+        background: rgba(0,0,0,0.3);
+        border-left: 1px solid rgba(255,255,255,0.2);
+        height: 100%;
+        width: 15%;
+        overflow: scroll-x;
+        z-index: 4;
+        box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.8);
+        -webkit-box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.8);
+        -moz-box-shadow: 0px -2px 10px rgba(0, 0, 0, 0.8);
+        text-shadow: 0 0 3px rgba(0,0,0,0.5);
+    }
+    
+    #players h2,h3 {
+        font-family: arial;
+        font-weight: bold;
+        color: #fff;
+        padding: 5px;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        margin: 0;
+        text-align: center;
+    }
+    
+    #players a {
+        font-family: arial;
+        font-size: 11px;
+        color: #FFFFFF;
+        padding: 5px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        display: block;
+    }
+	img.leaflet-image-layer
+	{
+	z-index:-1;
+	}
+    
+    /* adds box shadow to entities / players 
+    .leaflet-marker-icon {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+        -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+        -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    } */
+    </style>
+    
+    <!--[if lte IE 8]><link rel="stylesheet" href="leaflet/leaflet.ie.css" /><![endif]-->
+    <script src="leaflet.js"></script>
+</head>
+<body>
+    <div id="players">
+        <h2>Online Players</h2>
+		<h3><span id="worldname"></span>: <span id="time"></span></h3>
+    </div>
+    
+    <div id="map" style="height: 100%; width: 100%; top: 0; position: absolute; left: 0;">
+    </div>
+    
+    <script type="text/javascript">
+    var cloudmadeUrl = '{y}'+','+'{x}.png',
+    // create a CloudMade tile layer
+        cloudmadeAttribution = 'Map of the United Banana Empire',
+        cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 14, tileSize: 256, attribution: cloudmadeAttribution,errorTileUrl:"bedrock.png"});
+
+    // initialize the map on the "map" div
+   //var map = new L.Map('map', {crs: L.Util.extend({}, L.CRS, {code: 'simple',projection: L.Projection.LonLat,transformation: new L.Transformation(1, 0, 1, 0)})});
+	
+	var map = new L.Map('map', {touchZoom:true, scrollWheelZoom:true,doubleClickZoom:false,zoomControl:true});
+
+
+    // set the map view to a given center and zoom and add the CloudMade layer
+    </script>
+    <script src="players.js"></script>
+	<script src="world.js"></script>
+</body>
+</html>
