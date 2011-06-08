@@ -59,6 +59,29 @@ public class PlayerScript {
 	if(time<13||time>23) return true;
 	return false;
 	}
+    private double[] convertLocation(double d, double e)
+    {
+    	double[] XZ = new double[2];
+    	System.out.println(d+","+e);
+    	
+    	double radius = Math.sqrt(d*d + e*e);
+    	double ed = e/d;
+    	double angle = Math.atan(ed);
+    	double cart = angle+(Math.PI/2);
+    	double X = radius * Math.cos(cart);
+    	double Z = radius * Math.sin(cart);
+    	//XZ[0] = X;
+    	//XZ[1] = Z;
+    	double old_z = e;
+    	double old_x = d;
+    	 double new_x = -1 * old_z;
+    	 double new_z = old_x;
+    	XZ[0]=new_x;
+    	XZ[1]=new_z;
+    	 
+    	System.out.println(X+","+Z);
+    	return XZ;
+    }
     
 	public String updateMapMarkers(World world) 
 	{
@@ -262,8 +285,10 @@ public class PlayerScript {
 			}
 			for(Player player : world.getPlayers())
 			{
-				double Zc = (((player.getLocation().getX()/256)*multiplier));
-				double Xc = 0-(((player.getLocation().getZ()/256)*multiplier)+multiplier);
+				double XZ[] = convertLocation(player.getLocation().getX(),player.getLocation().getZ());
+				double Zc = XZ[0]/256*multiplier;
+				double Xc = 0-XZ[1]/256*multiplier+multiplier*2;
+				System.out.print(XZ[0]+","+XZ[1]);
 				//out.println("var markerLocation = new L.LatLng("+(Zc+0)+", "+(Xc-0)+"); var marker = new L.Marker(markerLocation); map.addLayer(marker); marker.bindPopup('<b>"+player.getName()+"</b><br/>"+player.getLocation().getX()+","+player.getLocation().getZ()+"').openPopup();");
 				//out.print("var imageBounds = new L.LatLngBounds(new L.LatLng("+((Zc+0)+0.1)+","+((Xc-0)+0.1)+"),new L.LatLng("+(Zc+0)+","+(Xc-0)+"));var image = new L.ImageOverlay(\"http://minotar.net/avatar/"+player.getName()+"/64\", imageBounds);map.addLayer(image);");
 				out.print("var MyIcon = L.Icon.extend({iconUrl: 'http://minotar.net/avatar/"+player.getName()+"/32.png',iconSize: new L.Point(32, 32),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(Zc)+","+(Xc)+"),popupAnchor: new L.Point("+(Zc)+"/2,"+(Xc)+"/2)});var icon = new MyIcon();var markerLocation = new L.LatLng("+(Zc)+", "+(Xc)+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);marker.bindPopup(\"<b>"+player.getName()+"</b>\");");
