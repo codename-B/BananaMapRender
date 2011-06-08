@@ -63,7 +63,7 @@ public class ChunkToPng {
 	public boolean makeTile(int tileX, int tileZ, World world, ChunkSnapshot[][] region, boolean isNether) {
 		String folder = plugin.getDir(world.getName());
 		
-		file = new File(folder + (leftshift+(tileX)) + ","+ (leftshift+(0-tileZ)) + ".png");
+		file = new File(folder + ((tileX)) + ","+ ((tileZ)) + ".png");
 		
 
 
