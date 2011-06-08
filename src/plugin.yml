@@ -1,0 +1,11 @@
+name: BMR
+version: 0.3.6
+author: codename_B
+website: http://ubempire.com/
+main: com.ubempire.render.BananaMapRender
+description: Lightweight alternative to dynmap
+commands:
+  bmr:
+    description: Renders the chunk of the player
+    usage: |
+      /<command> range worldnumber - renders the chunk of the player.
