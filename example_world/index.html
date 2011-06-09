@@ -60,19 +60,20 @@
 		<h3><span id="worldname"></span>: <span id="time"></span></h3>
     </div>
     
-    <div id="map" style="height: 100%; width: 100%; top: 0; position: absolute; left: 0;">
+    <div id="map" style="height: 100%; width: 100%; top: 0; position: absolute; left: 0; background-image:url('bedrock.jpg');">
     </div>
     
     <script type="text/javascript">
-    var cloudmadeUrl = '{y}'+','+'{x}.png',
+    var cloudmadeUrl = '',
     // create a CloudMade tile layer
         cloudmadeAttribution = 'Map of the United Banana Empire',
-        cloudmade = new L.TileLayer(cloudmadeUrl, {minZoom: 7, maxZoom: 11, tileSize: 256, attribution: cloudmadeAttribution,errorTileUrl:"bedrock.png"});
+        cloudmade = new L.TileLayer(cloudmadeUrl, {minZoom: 7, maxZoom: 11, tileSize: 256, attribution: cloudmadeAttribution,errorTileUrl:"bedrock.jpg"});
 
     // initialize the map on the "map" div
    //var map = new L.Map('map', {crs: L.Util.extend({}, L.CRS, {code: 'simple',projection: L.Projection.LonLat,transformation: new L.Transformation(1, 0, 1, 0)})});
 	
 	var map = new L.Map('map', {touchZoom:true, scrollWheelZoom:true,doubleClickZoom:false,zoomControl:true});
+	
 
 
     // set the map view to a given center and zoom and add the CloudMade layer
