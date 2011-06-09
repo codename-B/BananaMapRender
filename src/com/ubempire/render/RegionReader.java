@@ -14,17 +14,26 @@ package com.ubempire.render;
 import java.io.File;
 
 import org.bukkit.World;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.config.Configuration;
 
 
 public class RegionReader {
 	
-    public static Configuration getRegions(World world) {
-		File filepath = new File("plugins/WorldGuard/worlds/" + world.getName() + "/regions.yml");
-		Configuration c = null;
-		if (filepath.exists())
-		    (c = new Configuration(filepath)).load();
+    public static Configuration getRegions(Plugin p, World world) {
+        Plugin wg = p.getServer().getPluginManager().getPlugin("WorldGuard");
+        if (wg == null) return null;
+		File filepath = new File(wg.getDataFolder() + "/" + world.getName() + "/regions.yml");
+		if (!filepath.exists()) return null;
+		Configuration c = new Configuration(filepath);
+		c.load();
         return c;
 	}
+    
+    public static Configuration getBorders(Plugin p) {
+        Plugin wb = p.getServer().getPluginManager().getPlugin("WorldBorder");
+        if (wb == null) return null;
+        return wb.getConfiguration();
+    }
     
 }

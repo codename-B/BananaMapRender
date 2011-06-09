@@ -67,7 +67,7 @@ public class ChunkToPng {
 		
 
 
-		if (ageInHours(file) > 1) {
+		if (ageInHours(file) > plugin.varExpirationHours()) {
 	        img = new BufferedImage(X, Z, BufferedImage.TYPE_INT_RGB);
 	        WritableRaster output = img.getRaster();
 			

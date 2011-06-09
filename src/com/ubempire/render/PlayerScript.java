@@ -58,9 +58,8 @@ public class PlayerScript {
 	}
     
     private double[] convertLocation(double d, double e) {
-    	double offset = 1+16/512;
-    	//System.out.println(((e/512))+ "," +((d/512)));
-    	return new double[]{0-((e/512))+offset,0-((d/512))+offset};
+    	double offset = 1;
+    	return new double[]{d / -512.0 + offset, e / -512.0 + offset};
     }
     
     String monsterName(Entity e) {
@@ -104,54 +103,65 @@ public class PlayerScript {
 
             
             /* Get Tile Layers */
+
             File dir = new File(plugin.getDir(world.getName()));
 			String[] filenames = null;
 			String[] children = dir.list();
-			if (children == null) {
-			    // Either dir does not exist or is not a directory
-				
-			} else {
+			if (children != null) {
 				filenames = new String[children.length];
 			    int count = 0;
 				for (int i=0; i<children.length; i++) {
-			        // Get filename of file or directory
-			    	if(children[i].endsWith(".png")&&children[i].contains(","))
-			    	{
-			    	
-			        filenames[count] = children[i];
-			        count++;
+			    	if(children[i].endsWith(".png")&&children[i].contains(",")) {			    	
+    			        filenames[count] = children[i];
+    			        count++;
 			    	}
-			       
 			    }
 			
 			}
-			for(String png : filenames)
-			{
-				if(png!=null)
-				{
-				String XK[] = png.split("[.,]");
-				int[] x0z0 = new int[XZ.length];
-				for(int i = 0; i<2;i++)
-				{
-				x0z0[i]=Integer.parseInt(XK[i]);
+			
+			for(String png : filenames) {
+				if(png!=null) {
+    				String XK[] = png.split("[.,]");
+    				int[] x0z0 = new int[XZ.length];
+    				for(int i = 0; i<2;i++)
+    				    x0z0[i]=Integer.parseInt(XK[i]);
+    				out.print("var imageBounds = new L.LatLngBounds(new L.LatLng("+(0-x0z0[0])+","+(0-x0z0[1])+"),new L.LatLng("+(0-x0z0[0])+"+1,"+(0-x0z0[1])+"+1));var image = new L.ImageOverlay(\""+XK[0]+","+XK[1]+".png\", imageBounds);map.addLayer(image);");
 				}
-				out.print("var imageBounds = new L.LatLngBounds(new L.LatLng("+(0-x0z0[0])+","+(0-x0z0[1])+"),new L.LatLng("+(0-x0z0[0])+"+1,"+(0-x0z0[1])+"+1));var image = new L.ImageOverlay(\""+XK[0]+","+XK[1]+".png\", imageBounds);map.addLayer(image);");
-				}
-				
+			}
+			
+			Configuration c;
+			
+			/* WorldBorder */
+			
+			if (plugin.varWorldborderEnable()) {
+    			c = RegionReader.getBorders(plugin);
+    			if (c != null) {
+    			    double wbx = c.getDouble("worlds." + world.getName() + ".x", 0), wbz = c.getDouble("worlds." + world.getName() + ".z", 0);
+    			    double wbr = c.getDouble("worlds." + world.getName() + ".radius", 0);
+    			    XZ = convertLocation(wbx-wbr, wbz-wbr);
+    			    out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
+    			    XZ = convertLocation(wbx+wbr, wbz+wbr);
+                    out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
+                    out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + plugin.varWorldborderColor() + "\";polygon.options.opacity = " + plugin.varWorldborderOpacity() + ";polygon.options.fillOpacity = " + plugin.varWorldborderFillOpacity() + ";map.addLayer(polygon);");
+    			}
 			}
 			
 			/* WorldGuard */
 			
-			Configuration c = RegionReader.getRegions(world);
-			if (c != null) {
-			    List<String> regions = c.getKeys("regions");
-			    for(String region : regions) {
-			        XZ = convertLocation(c.getDouble("regions." + region + ".min.x",0), c.getDouble("regions." + region + ".min.z",0));
-    	        	out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
-    	        	XZ = convertLocation(c.getDouble("regions." + region + ".max.x",0), c.getDouble("regions." + region + ".max.z",0));
-    	        	out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
-    	        	out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);map.addLayer(polygon);polygon.bindPopup(\""+region+"\");");
-			    }
+			if (plugin.varWorldguardRegionsEnable()) {
+    			c = RegionReader.getRegions(plugin, world);
+    			if (c != null) {
+    			    String rColor = plugin.varWorldguardRegionsColor();
+    			    double rOpacity = plugin.varWorldguardRegionsOpacity(), rFillOpacity = plugin.varWorldguardRegionsFillOpacity();
+    			    List<String> regions = c.getKeys("regions");
+    			    for(String region : regions) {
+    			        XZ = convertLocation(c.getDouble("regions." + region + ".min.x",0), c.getDouble("regions." + region + ".min.z",0));
+        	        	out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
+        	        	XZ = convertLocation(c.getDouble("regions." + region + ".max.x",0), c.getDouble("regions." + region + ".max.z",0));
+        	        	out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
+        	        	out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + rColor + "\";polygon.options.opacity = " + rOpacity + ";polygon.options.fillOpacity = " + rFillOpacity + ";map.addLayer(polygon);polygon.bindPopup(\""+region+"\");");
+    			    }
+    			}
 			}
 			
 			/* Markers */
@@ -160,42 +170,65 @@ public class PlayerScript {
 			    
 			    /* Tile Entities */
 			    
-				for(BlockState b: chunk.getTileEntities()) {					
-					if(b instanceof CreatureSpawner && Math.random() < 0.2) {
-						XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
-						out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Spawner.png',iconSize: new L.Point("+20+","+20+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
-					}
-					if(b instanceof Sign) {
-						String[] signLines = ((Sign) b).getLines();
-						if(signLines.length > 0 && signLines[0].equalsIgnoreCase("[BMR]")) {
-						    XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
-							out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Sign.png',iconSize: new L.Point("+32+","+32+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);marker.bindPopup(\"");
-						
-							for(int i = 1; i < signLines.length; i++)
-							    if (!signLines[i].equals(""))
-							        out.print(signLines[i]+"<br/>");
-							out.print("\");");
-						}
-					}
-				}
+			    if (plugin.varTileEntitiesEnable()) {
+			        int tps = 0;
+    				for(BlockState b: chunk.getTileEntities()) {
+                        if (tps > plugin.varTileEntitiesMaxPerChunk()) break;
+                        tps += 1;
+    					if(plugin.varTileEntitiesSpawners() && b instanceof CreatureSpawner
+    					        && Math.random() < plugin.varTileEntitiesSpawnerChance()) {
+    						XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
+    						out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Spawner.png',iconSize: new L.Point("+20+","+20+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
+    					}
+    					if(plugin.varTileEntitiesSigns() && b instanceof Sign) {
+    						String[] signLines = ((Sign) b).getLines();
+    						if(signLines.length > 0 && signLines[0].equalsIgnoreCase("[BMR]")) {
+    						    XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
+    							out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Sign.png',iconSize: new L.Point("+32+","+32+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);marker.bindPopup(\"");
+    						
+    							for(int i = 1; i < signLines.length; i++)
+    							    if (!signLines[i].equals(""))
+    							        out.print(signLines[i]+"<br/>");
+    							out.print("\");");
+    						}
+    					}
+    				}
+			    }
 				
 				/* Entities */
 				
-				int eps = 0;
-				for(Entity e: chunk.getEntities()) {
-				    if (!(e instanceof LivingEntity)) continue;
-				    if (e instanceof Player) {
-				        Player player = (Player)e;
-		                XZ = convertLocation(player.getLocation().getX(),player.getLocation().getZ());
-		                out.print("var MyIcon = L.Icon.extend({iconUrl: 'http://minotar.net/avatar/"+player.getName()+"/32.png',iconSize: new L.Point(32, 32),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+"/2,"+(XZ[1])+"/2)});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);marker.bindPopup(\"<b>"+player.getName()+"</b>\");");
-		                out.print("");
-		                out.print("document.getElementById(\"players\").innerHTML=document.getElementById(\"players\").innerHTML+\"<a href='#' onclick='map.setView(new L.LatLng("+(XZ[0])+", "+(XZ[1])+"), 9);'>\"+\""+player.getName()+"</a>\";");
-				    } else {
-				        if (eps > 5) continue;
-				        eps += 1;
-				        XZ = convertLocation(e.getLocation().getX(),e.getLocation().getZ()); 
-	                    out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/" + monsterName(e) + ".png',iconSize: new L.Point("+tilesize+","+tilesize+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
-				    }
+				if (plugin.varEntitiesEnable()) {
+    				int eps = 0;
+    				for(Entity e: chunk.getEntities()) {
+    				    if (!(e instanceof LivingEntity)) continue;
+    				    if (e instanceof Player) {
+    				        if (!plugin.varEntitiesPlayers()) continue;
+    				        Player player = (Player)e;
+    		                XZ = convertLocation(player.getLocation().getX(),player.getLocation().getZ());
+    		                out.print("var MyIcon = L.Icon.extend({iconUrl: 'http://minotar.net/avatar/"+player.getName()+"/32.png',iconSize: new L.Point(32, 32),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+"/2,"+(XZ[1])+"/2)});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
+    		                if (plugin.varEntitiesPlayerPopups())
+    		                    out.print("marker.bindPopup(\"<b>"+player.getName()+"</b>\");");
+    		                out.print("");
+    		                out.print("document.getElementById(\"players\").innerHTML=document.getElementById(\"players\").innerHTML+\"<a href='#' onclick='map.setView(new L.LatLng("+(XZ[0])+", "+(XZ[1])+"), 9);'>\"+\""+player.getName()+"</a>\";");
+    				    } else {
+    				        String mn = monsterName(e);
+    				        if (plugin.varEntitiesTamedWolves() && mn.equalsIgnoreCase("Wolf")) {
+    				            Wolf w = (Wolf)e;
+    				            if (w.isTamed()) {
+    	                            XZ = convertLocation(e.getLocation().getX(),e.getLocation().getZ());
+    				                out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/" + mn + "Tamed.png',iconSize: new L.Point("+tilesize+","+tilesize+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
+    				                if (w.getOwner() != null && w.getOwner() instanceof Player)
+    				                    out.print("marker.bindPopup(\"<b>"+((Player)w.getOwner()).getName()+"</b>\");");
+    				                continue;
+    				            }
+    				        }
+    				        if (eps > plugin.varEntitiesMaxPerChunk()) continue;
+    				        if (!plugin.varEntitiesMob(mn)) continue;
+    				        eps += 1;
+    				        XZ = convertLocation(e.getLocation().getX(),e.getLocation().getZ()); 
+    	                    out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/" + mn + ".png',iconSize: new L.Point("+tilesize+","+tilesize+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
+    				    }
+    				}
 				}
 				
 			}

@@ -13,7 +13,7 @@ public class RenderStarterTask extends TimerTask {
         for (int i = 0; i < plugin.threadQueue.size(); i++) {
             GeneratorThread t = plugin.threadQueue.get(i);
             if (!t.isAlive()) {
-                if (!t.done && plugin.renderThreads < plugin.getConfiguration().getInt("max-threads", 4)) {
+                if (!t.done && plugin.renderThreads < plugin.varMaxThreads()) {
                     plugin.renderThreads += 1;
                     try {
                         t.start();
