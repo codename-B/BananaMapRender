@@ -136,13 +136,18 @@ public class PlayerScript {
 			if (plugin.varWorldborderEnable()) {
     			c = RegionReader.getBorders(plugin);
     			if (c != null) {
-    			    double wbx = c.getDouble("worlds." + world.getName() + ".x", 0), wbz = c.getDouble("worlds." + world.getName() + ".z", 0);
-    			    double wbr = c.getDouble("worlds." + world.getName() + ".radius", 0);
-    			    XZ = convertLocation(wbx-wbr, wbz-wbr);
-    			    out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
-    			    XZ = convertLocation(wbx+wbr, wbz+wbr);
-                    out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
-                    out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + plugin.varWorldborderColor() + "\";polygon.options.opacity = " + plugin.varWorldborderOpacity() + ";polygon.options.fillOpacity = " + plugin.varWorldborderFillOpacity() + ";map.addLayer(polygon);");
+                    double wbx = c.getDouble("worlds." + world.getName() + ".x", 0), wbz = c.getDouble("worlds." + world.getName() + ".z", 0);
+                    double wbr = c.getDouble("worlds." + world.getName() + ".radius", 0);
+    			    if (c.getBoolean("worlds." + world.getName() + ".shape-round", false) || c.getBoolean("round-border", false)) {
+    			        XZ = convertLocation(wbx, wbz);
+    			        out.print("p1 = new L.LatLng("+XZ[0]+", "+XZ[1]+");var polygon = new L.Circle(p1, "+wbr+");polygon.options.color = \"" + plugin.varWorldborderColor() + "\";polygon.options.opacity = " + plugin.varWorldborderOpacity() + ";polygon.options.fillOpacity = " + plugin.varWorldborderFillOpacity() + ";map.addLayer(polygon);");
+    			    } else {
+        			    XZ = convertLocation(wbx-wbr, wbz-wbr);
+        			    out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
+        			    XZ = convertLocation(wbx+wbr, wbz+wbr);
+                        out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
+                        out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + plugin.varWorldborderColor() + "\";polygon.options.opacity = " + plugin.varWorldborderOpacity() + ";polygon.options.fillOpacity = " + plugin.varWorldborderFillOpacity() + ";map.addLayer(polygon);");
+    			    }
     			}
 			}
 			

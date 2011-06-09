@@ -23,7 +23,7 @@ public class RegionReader {
     public static Configuration getRegions(Plugin p, World world) {
         Plugin wg = p.getServer().getPluginManager().getPlugin("WorldGuard");
         if (wg == null) return null;
-		File filepath = new File(wg.getDataFolder() + "/" + world.getName() + "/regions.yml");
+		File filepath = new File(wg.getDataFolder() + "/worlds/" + world.getName() + "/regions.yml");
 		if (!filepath.exists()) return null;
 		Configuration c = new Configuration(filepath);
 		c.load();

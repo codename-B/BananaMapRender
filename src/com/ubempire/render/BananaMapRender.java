@@ -12,13 +12,17 @@
 
 package com.ubempire.render;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.logging.Logger;
@@ -31,7 +35,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.*;
@@ -46,6 +49,10 @@ public class BananaMapRender extends JavaPlugin {
     
     int renderThreads;
     List<GeneratorThread> threadQueue;
+    
+    Map<Integer,Color> colors;
+    Map<Integer,List<Color>> multiColors;
+    boolean showDepth, showWaterDepth, showLavaDepth;
 
 	public void onDisable() {
 		final PluginDescriptionFile pdfFile = getDescription();
@@ -55,16 +62,19 @@ public class BananaMapRender extends JavaPlugin {
 	}
 
 	public void onEnable() {
+	    IdToColor.plugin = this;
+	    colors = new HashMap<Integer,Color>();
+	    multiColors = new HashMap<Integer,List<Color>>(); 
+	    setDefaultColors();
+	    loadVars();
+	    
 	    renderThreads = 0;
 	    threadQueue = new LinkedList<GeneratorThread>();
 	    
 	    markups = new PlayerScript(this);
 	    renderStarter = new Timer();
 	    renderStarter.schedule(new RenderStarterTask(this), 1000, 1000);
-	    
-	    for (Plugin p : getServer().getPluginManager().getPlugins())
-	        System.out.println(p.getDescription().getName());
-	    
+
 	    displayWorldName();
 
 	    getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
@@ -280,6 +290,122 @@ public class BananaMapRender extends JavaPlugin {
     }
     protected boolean varTileEntitiesSigns() {
         return getConfiguration().getBoolean("tile-entities.signs", true);
+    }
+    protected boolean varDepthWater() {
+        return showWaterDepth;
+    }
+    protected boolean varDepthLava() {
+        return showLavaDepth;
+    }
+    protected boolean varDepthGround() {
+        return showDepth;
+    }
+    
+    protected Color varColor(int id) {
+        if (colors.containsKey(id))
+            return colors.get(id);
+        else return new Color(255,255,255); //Default color
+    }
+    protected Color varColor(int id, int damage) {
+        if (multiColors.containsKey(id) && damage < multiColors.get(id).size())
+            return multiColors.get(id).get(damage);
+        else return varColor(id);
+    }
+    
+    private void setDefaultColors() {
+        Color c;
+        colors.put(0,new Color(255,255,255));
+        colors.put(1,new Color(139,137,137));        
+        c = new Color(15, 255, 0);
+        colors.put(2,c); colors.put(31,c); colors.put(37,c); colors.put(38,c); colors.put(39,c); colors.put(40,c); colors.put(59,c);
+        c = new Color(139,69,19);
+        colors.put(3,c); colors.put(60,c); colors.put(88,c);
+        colors.put(4,new Color(205,197,191));
+        c = new Color(148,124,80);
+        colors.put(5,c); colors.put(53,c); colors.put(54,c); colors.put(58,c); colors.put(85,c); colors.put(86,c); colors.put(90,c);
+        colors.put(6,new Color(139,69,19));
+        colors.put(7,new Color(52,52,52));
+        c = new Color(20,20,200);
+        colors.put(8,c); colors.put(9,c);
+        c = new Color(252,87,0);
+        colors.put(10,c); colors.put(11,c);
+        colors.put(12,new Color(134,114,94));
+        c = new Color(144,144,144); 
+        colors.put(13,c); colors.put(14,c); colors.put(15,c); colors.put(16,c); colors.put(21,c); colors.put(56,c); colors.put(61,c);
+        colors.put(62,c); colors.put(67,c); colors.put(73,c); colors.put(74,c);
+        c = new Color(160,82,45);
+        colors.put(17,c); colors.put(81,c); colors.put(83,c);
+        c = new Color(255,255,255);
+        colors.put(19,c); colors.put(20,c);
+        colors.put(22,new Color(26,70,161));
+        colors.put(24,new Color(214,207,154));
+        colors.put(41,new Color(255,251,86));
+        colors.put(41,new Color(240,240,240));
+        c = new Color(164,164,164);
+        colors.put(43,c); colors.put(44,c);
+        c = new Color(157,77,55);
+        colors.put(45,c); colors.put(46,c); colors.put(47,c);
+        colors.put(48,new Color(33,76,33));
+        colors.put(49,new Color(15,15,24));
+        c = new Color(255,255,255);
+        colors.put(50,c); colors.put(51,c); colors.put(52,c); 
+        colors.put(55,new Color(252,87,0));
+        colors.put(57,new Color(156,234,231));
+        colors.put(79,new Color(90,134,191));
+        colors.put(87,new Color(128,8,8));
+        colors.put(89,new Color(37,64,48));
+        List<Color> variants;
+        variants = new ArrayList<Color>();
+        variants.add(new Color(34,100,34));
+        variants.add(new Color(40,72,0));
+        variants.add(new Color(20,105,36));
+        multiColors.put(18, variants);
+        variants = new ArrayList<Color>();
+        variants.add(new Color(241,241,241));
+        variants.add(new Color(235,129,56));
+        variants.add(new Color(185,57,197));
+        variants.add(new Color(126,156,219));
+        variants.add(new Color(212,187,32));
+        variants.add(new Color(62,198,49));
+        variants.add(new Color(221,141,163));
+        variants.add(new Color(63,63,63));
+        variants.add(new Color(173,180,180));
+        variants.add(new Color(31,96,123));
+        variants.add(new Color(135,56,205));
+        variants.add(new Color(35,46,141));
+        variants.add(new Color(82,49,27));
+        variants.add(new Color(54,74,24));
+        variants.add(new Color(167,45,41));
+        variants.add(new Color(10,10,10));
+        multiColors.put(35, variants);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void loadVars() {
+        List<Color> variants;
+        List<String> mckeys = getConfiguration().getKeys("multi-colors");
+        if (mckeys != null) for (String key : mckeys) {
+            Integer id = Integer.parseInt(key.substring(1));
+            variants = new ArrayList<Color>();
+            for (Object sublist : getConfiguration().getList("multi-colors." + key)) {
+                if (!(sublist instanceof List<?>)) continue;
+                List<Object> inner = ((List<Object>)sublist);
+                if (inner.size() < 3) continue;
+                if (inner.get(0) instanceof Integer && inner.get(1) instanceof Integer && inner.get(2) instanceof Integer)
+                    variants.add(new Color((Integer)inner.get(0), (Integer)inner.get(1), (Integer)inner.get(2)));
+            }
+            multiColors.put(id, variants);
+        }
+        mckeys = getConfiguration().getKeys("colors");
+        if (mckeys != null) for (String key : mckeys) {
+            Integer id = Integer.parseInt(key.substring(1));
+            List<Integer> values = getConfiguration().getIntList("colors." + key, new ArrayList<Integer>());
+            if (values.size() < 3) continue;
+            colors.put(id, new Color(values.get(0),values.get(1),values.get(2)));
+        }
+        showDepth = getConfiguration().getBoolean("depth.ground", true);
+        showWaterDepth = getConfiguration().getBoolean("depth.water", true);
+        showLavaDepth = getConfiguration().getBoolean("depth.lava", true);
     }
 		
 }
