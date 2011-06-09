@@ -1,7 +1,89 @@
+##############################################################
+### BananaMapRender configuration file - Review carefully! ###
+##############################################################
+
+#Directory tiles world folders are placed in.
 directory: 'plugins/BukkitHTTPD/'
-show-entities: false
-show-depth: true
-show-tiles: true
+
+#Amount of rendering threads used to generate the tiles. Lower if your server is being overwhelmed.
+#Never make it greater than the amount of physical cores in your CPU or CPUs.
 max-threads: 2
-show-regions: true
-entity-limit: 150
+
+#Amount of hours it takes for a tile to expire and require an update.
+expiration-hours: 1
+
+#How often, in minutes, should expired tiles with players in them be updated.
+tile-checker-frequency: 5
+
+#How often should all the markers in the map be updated, also in minutes.
+marker-updates-frequency: 1
+
+#WorldBorder integration
+worldborder:
+    enable: false
+    color: '#ff0000'
+    opacity: 0.5
+    fill-opacity: 0.0
+
+#WorldGuard integration
+worldguard-regions:
+    enable: true
+    color: '#0033ff'
+    opacity: 0.5
+    fill-opacity: 0.1
+
+#Entity marker options
+entities:
+
+    #Blanket enable or disable entities. Disable here for maximum efficiency.
+    #Must be enabled for all the other options in this block to work.
+    enable: true
+    
+    #How many mobs to mark in each chunk (don't set this too high or the viewer will be slow).
+    max-per-chunk: 3
+
+    #Enable or disable each type of mob separately if you want:
+    mobs:
+        Pig: true
+        Cow: true
+        Sheep: true
+        Chicken: true
+        Creeper: true
+        Skeleton: true
+        Spider: true
+        Zombie: true
+        Wolf: true
+        PigZombie: true
+        Ghast: true
+        Slime: true
+        Squid: true
+    
+    #Enable or disable player position markers    
+    players: true
+    
+    #Enable or disable player name popups when the markers are clicked (requires player markers)
+    player-popups: true
+    
+    #Enable or disable tamed wolves. If this is enabled, tamed wolves always show, they have a
+    # different icon (red collar) and you can click them to see the name of their owner.
+    tamed-wolves: true
+    
+#Tile entity marker options
+tile-entities:
+
+    #Blanket enable or disable tile entities. Disable here for maximum efficiency.
+    #Must be enabled for all the other options in this block to work.
+    enable: true
+    
+    #How many tile entities to mark in each chunk (don't set too high or the viewer will be slow).
+    max-per-chunk: 3
+    
+    #Show creature spawners?
+    spawners: false
+    
+    #If creature spawners are enabled, this is the chance of them actually showing.
+    spawner-chance: 0.2
+    
+    #Show BMR signs? BMR signs are signs with [BMR] in the first line. Clicking the icon will
+    #display the sign contents.
+    signs: true
