@@ -59,7 +59,7 @@ public class PlayerScript {
     
     private double[] convertLocation(double d, double e) {
     	double offset = 1+16/512;
-    	System.out.println(((e/512))+ "," +((d/512)));
+    	//System.out.println(((e/512))+ "," +((d/512)));
     	return new double[]{0-((e/512))+offset,0-((d/512))+offset};
     }
     

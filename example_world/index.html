@@ -67,7 +67,7 @@
     var cloudmadeUrl = '{y}'+','+'{x}.png',
     // create a CloudMade tile layer
         cloudmadeAttribution = 'Map of the United Banana Empire',
-        cloudmade = new L.TileLayer(cloudmadeUrl, {maxZoom: 14, tileSize: 256, attribution: cloudmadeAttribution,errorTileUrl:"bedrock.png"});
+        cloudmade = new L.TileLayer(cloudmadeUrl, {minZoom: 7, maxZoom: 11, tileSize: 256, attribution: cloudmadeAttribution,errorTileUrl:"bedrock.png"});
 
     // initialize the map on the "map" div
    //var map = new L.Map('map', {crs: L.Util.extend({}, L.CRS, {code: 'simple',projection: L.Projection.LonLat,transformation: new L.Transformation(1, 0, 1, 0)})});
