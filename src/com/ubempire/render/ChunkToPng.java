@@ -123,7 +123,9 @@ public class ChunkToPng {
 
 	public Color getHighestBlockColor(int x, int z, ChunkSnapshot chunk, boolean isNether) {
 		Color color = new Color(200, 80, 5);
-		int highest = chunk.getHighestBlockYAt(x, z) - 1;
+		int highest;
+		highest = chunk.getHighestBlockYAt(x, z);
+		if(chunk.getBlockTypeId(x, highest, z)==0) {highest = chunk.getHighestBlockYAt(x, z) - 1;}
 		if (highest < 0) highest = 0;
 		if(isNether) {
 		    highest=90;

@@ -172,7 +172,7 @@ public class BananaMapRender extends JavaPlugin {
     			if (args.length > 1) worldNum = Integer.parseInt(args[1]);
     			
     			//Prevent user from shooting himself in the foot
-    			if (range > 4) {
+    			if (range > varMaxRendersize()) {
     			    sender.sendMessage(ChatColor.RED + "I'm sorry, Dave. I'm afraid I can't do that.");
     			    return true;
     			}
@@ -221,6 +221,9 @@ public class BananaMapRender extends JavaPlugin {
         File dir = new File((directory.substring(0, directory.length() - (directory.endsWith("/") ? 1 : 0)))); 
         if (!dir.exists()) dir.mkdir();     
         return directory;
+    }
+    protected int varMaxRendersize() {
+    	return getConfiguration().getInt("max-render", 4);
     }
 	protected int varMaxThreads() {
 	    return getConfiguration().getInt("max-threads", 2);
@@ -322,25 +325,27 @@ public class BananaMapRender extends JavaPlugin {
         colors.put(3,c); colors.put(60,c); colors.put(88,c);
         colors.put(4,new Color(205,197,191));
         c = new Color(148,124,80);
-        colors.put(5,c); colors.put(53,c); colors.put(54,c); colors.put(58,c); colors.put(85,c); colors.put(86,c); colors.put(90,c);
+        colors.put(5,c); colors.put(32,c); colors.put(53,c); colors.put(54,c); colors.put(58,c); colors.put(85,c); colors.put(86,c); colors.put(90,c);
         colors.put(6,new Color(139,69,19));
         colors.put(7,new Color(52,52,52));
         c = new Color(20,20,200);
         colors.put(8,c); colors.put(9,c);
         c = new Color(252,87,0);
-        colors.put(10,c); colors.put(11,c);
+        colors.put(10,c); colors.put(11,c); colors.put(51,c);
         colors.put(12,new Color(134,114,94));
         c = new Color(144,144,144); 
         colors.put(13,c); colors.put(14,c); colors.put(15,c); colors.put(16,c); colors.put(21,c); colors.put(56,c); colors.put(61,c);
         colors.put(62,c); colors.put(67,c); colors.put(73,c); colors.put(74,c);
         c = new Color(160,82,45);
         colors.put(17,c); colors.put(81,c); colors.put(83,c);
+        colors.put(18,new Color(35,100,40));
         c = new Color(255,255,255);
         colors.put(19,c); colors.put(20,c);
         colors.put(22,new Color(26,70,161));
         colors.put(24,new Color(214,207,154));
+        colors.put(31, new Color(20,140,0));
         colors.put(41,new Color(255,251,86));
-        colors.put(41,new Color(240,240,240));
+        colors.put(42,new Color(240,240,240));
         c = new Color(164,164,164);
         colors.put(43,c); colors.put(44,c);
         c = new Color(157,77,55);
@@ -352,8 +357,11 @@ public class BananaMapRender extends JavaPlugin {
         colors.put(55,new Color(252,87,0));
         colors.put(57,new Color(156,234,231));
         colors.put(79,new Color(90,134,191));
+        colors.put(83, new Color(20,140,0));
+        colors.put(86, new Color(255,140,0));
         colors.put(87,new Color(128,8,8));
         colors.put(89,new Color(37,64,48));
+        colors.put(91, new Color(255,140,0));
         List<Color> variants;
         variants = new ArrayList<Color>();
         variants.add(new Color(34,100,34));

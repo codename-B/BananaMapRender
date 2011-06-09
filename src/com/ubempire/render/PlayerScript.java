@@ -138,9 +138,9 @@ public class PlayerScript {
     			if (c != null) {
                     double wbx = c.getDouble("worlds." + world.getName() + ".x", 0), wbz = c.getDouble("worlds." + world.getName() + ".z", 0);
                     double wbr = c.getDouble("worlds." + world.getName() + ".radius", 0);
-    			    if (c.getBoolean("worlds." + world.getName() + ".shape-round", false) || c.getBoolean("round-border", false)) {
+    			    if (c.getBoolean("round-border", c.getBoolean("worlds." + world.getName() + ".shape-round", false))) {
     			        XZ = convertLocation(wbx, wbz);
-    			        out.print("p1 = new L.LatLng("+XZ[0]+", "+XZ[1]+");var polygon = new L.Circle(p1, "+wbr+");polygon.options.color = \"" + plugin.varWorldborderColor() + "\";polygon.options.opacity = " + plugin.varWorldborderOpacity() + ";polygon.options.fillOpacity = " + plugin.varWorldborderFillOpacity() + ";map.addLayer(polygon);");
+    			        out.print("p1 = new L.LatLng("+XZ[0]+", "+XZ[1]+");var polygon = new L.Circle(p1, "+wbr*300+");polygon.options.color = \"" + plugin.varWorldborderColor() + "\";polygon.options.opacity = " + plugin.varWorldborderOpacity() + ";polygon.options.fillOpacity = " + plugin.varWorldborderFillOpacity() + ";map.addLayer(polygon);");
     			    } else {
         			    XZ = convertLocation(wbx-wbr, wbz-wbr);
         			    out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
@@ -231,7 +231,7 @@ public class PlayerScript {
     				        if (!plugin.varEntitiesMob(mn)) continue;
     				        eps += 1;
     				        XZ = convertLocation(e.getLocation().getX(),e.getLocation().getZ()); 
-    	                    out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/" + mn + ".png',iconSize: new L.Point("+tilesize+","+tilesize+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
+    	                    out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/" + mn + ".png',iconSize: new L.Point("+tilesize+","+tilesize+"),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+")});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var " + mn + " = new L.Marker(markerLocation, {icon: icon});map.addLayer(" + mn + ");");
     				    }
     				}
 				}
