@@ -1,0 +1,7 @@
+directory: 'plugins/BukkitHTTPD/'
+show-entities: false
+show-depth: true
+show-tiles: true
+max-threads: 2
+show-regions: true
+entity-limit: 150
