@@ -2,7 +2,8 @@
 ### BananaMapRender configuration file - Review carefully! ###
 ##############################################################
 
-#Directory tiles world folders are placed in.
+#You MUST set this to a directory or subdirectory path for the map to be stored into.
+#Folders for each of your worlds will be created here; Copy the template files into each of them.
 directory: 'plugins/BukkitHTTPD/'
 
 #Amount of rendering threads used to generate the tiles. Lower if your server is being overwhelmed.
@@ -18,9 +19,28 @@ tile-checker-frequency: 5
 #How often should all the markers in the map be updated, also in minutes.
 marker-updates-frequency: 1
 
+#Depth shading on tiles (slower).
+depth:
+    ground: true
+    water: true
+    lava: true
+    
+#You can redefine the map palette here by providing R,G,B values (0 to 255) for each block type.
+#The default palette colors will be used for each block type you don't define here.
+colors:
+    i0: [255,255,255]
+
+#Define colors here if you want a block's color to depend on its data byte (useful for wool, etc.)
+#This block has priority over 'colors'. Colors are defined in order for each data byte (from 0).
+multi-colors:
+#    i18:
+#        - [34,100,34]
+#        - [40,72,0]
+#        - [20,105,36]
+
 #WorldBorder integration
 worldborder:
-    enable: false
+    enable: true
     color: '#ff0000'
     opacity: 0.5
     fill-opacity: 0.0
