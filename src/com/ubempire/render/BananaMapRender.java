@@ -234,6 +234,9 @@ public class BananaMapRender extends JavaPlugin {
 	protected int varTileCheckerFrequency() {
 	    return getConfiguration().getInt("tile-checker-frequency", 5);
 	}
+	protected boolean showNightTiles() {
+		return getConfiguration().getBoolean("night-tiles", true);
+	}
     protected int varMarkerUpdatesFrequency() {
         return getConfiguration().getInt("marker-updates-frequency", 1);
     }	
@@ -360,7 +363,7 @@ public class BananaMapRender extends JavaPlugin {
         colors.put(83, new Color(20,140,0));
         colors.put(86, new Color(255,140,0));
         colors.put(87,new Color(128,8,8));
-        colors.put(89,new Color(37,64,48));
+        colors.put(89,new Color(150,110,48));
         colors.put(91, new Color(255,140,0));
         List<Color> variants;
         variants = new ArrayList<Color>();

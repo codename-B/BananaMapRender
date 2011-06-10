@@ -126,6 +126,14 @@ public class PlayerScript {
     				for(int i = 0; i<2;i++)
     				    x0z0[i]=Integer.parseInt(XK[i]);
     				out.print("var imageBounds = new L.LatLngBounds(new L.LatLng("+(0-x0z0[0])+","+(0-x0z0[1])+"),new L.LatLng("+(0-x0z0[0])+"+1,"+(0-x0z0[1])+"+1));var image = new L.ImageOverlay(\""+XK[0]+","+XK[1]+".png\", imageBounds);map.addLayer(image);");
+				if(plugin.showNightTiles()){
+				/* Show Night Tiles if option is enabled in config.txt */
+					if(!isDay(world))
+					{
+						
+						out.print("var imageBounds = new L.LatLngBounds(new L.LatLng("+(0-x0z0[0])+","+(0-x0z0[1])+"),new L.LatLng("+(0-x0z0[0])+"+1,"+(0-x0z0[1])+"+1));var image = new L.ImageOverlay(\"images/night.png\", imageBounds);map.addLayer(image);");
+					}
+					}
 				}
 			}
 			

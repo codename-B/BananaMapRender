@@ -23,6 +23,9 @@ tile-checker-frequency: 5
 #How often should all the markers in the map be updated, also in minutes.
 marker-updates-frequency: 1
 
+#Show tiles to represent night?
+night-tiles: true
+
 #WorldBorder integration
 worldborder:
     enable: false

@@ -22,7 +22,6 @@ import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import org.bukkit.ChunkSnapshot;
@@ -109,9 +108,9 @@ public class ChunkToPng {
 	            img.flush();
 	            os.flush();
 	            
-	        } catch (IOException e) {
-	            System.err.println("Image not saved: " + e);
-	        }
+	        }	        catch (Exception e){
+	        	System.err.println("Did you even create config.yml?");
+		}
 	        
 	        BananaMapRender.logger.info("Map rendering: " + tileX + " " + tileZ + " DONE");
 
