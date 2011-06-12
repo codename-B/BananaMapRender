@@ -95,3 +95,7 @@ tile-entities:
     #Show BMR signs? BMR signs are signs with [BMR] in the first line. Clicking the icon will
     #display the sign contents.
     signs: true
+
+hide:
+    # Names of people who won't be shown on the map. Good for NPCs and stealth guys.
+    EzioAuditoreDaFirenze: true

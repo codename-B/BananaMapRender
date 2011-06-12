@@ -8,4 +8,4 @@ commands:
   bmr:
     description: Renders the chunk of the player
     usage: |
-      /<command> range worldnumber - renders the chunk of the player.
+      /<command> range worldname - renders the chunk of the player.
