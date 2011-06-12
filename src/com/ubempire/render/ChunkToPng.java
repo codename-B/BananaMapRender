@@ -108,6 +108,7 @@ public class ChunkToPng {
 
             } catch (Exception e) {
                 System.err.println("Did you even create config.yml?");
+                e.printStackTrace();
             }
 
             BananaMapRender.logger.info("Map rendering: " + tileX + " " + tileZ + " DONE");
