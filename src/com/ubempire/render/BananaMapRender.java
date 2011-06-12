@@ -92,8 +92,6 @@ public class BananaMapRender extends JavaPlugin {
     public void displayWorldName() {
         for (World world : getServer().getWorlds()) {
             String directory = getDir(world.getName());
-            File directoryAsFile = new File(directory);
-            if (!directoryAsFile.exists()) directoryAsFile.mkdirs();
             String wfile = directory + "/world.js";
             try {
                 new File(wfile).createNewFile();
