@@ -178,8 +178,6 @@ public class BananaMapRender extends JavaPlugin {
                     final Player player = (Player) sender;
                     worldName = (worldName == null) ? player.getWorld().getName() : worldName;
                     loc = player.getLocation();
-                } else {
-                    sender.sendMessage(ChatColor.RED + "You aren't a player");
                 }
                 world = getServer().getWorld(worldName);
                 if (world != null) {
