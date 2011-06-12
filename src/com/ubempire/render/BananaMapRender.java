@@ -12,23 +12,8 @@
 
 package com.ubempire.render;
 
-import java.awt.Color;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.logging.Logger;
-
 import net.minecraft.server.ChunkCoordIntPair;
-
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -37,8 +22,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.*;
-import org.bukkit.World.Environment;
+
+import java.awt.*;
+import java.io.*;
+import java.util.*;
+import java.util.List;
+import java.util.logging.Logger;
 
 public class BananaMapRender extends JavaPlugin {
 	
@@ -54,7 +43,7 @@ public class BananaMapRender extends JavaPlugin {
     Map<Integer,List<Color>> multiColors;
     boolean showDepth, showWaterDepth, showLavaDepth;
 
-	public void onDisable() {
+    public void onDisable() {
 		final PluginDescriptionFile pdfFile = getDescription();
 		System.out.println("[" + (pdfFile.getName()) + "]" + " version " + pdfFile.getVersion() + " is disabled!");
 		getServer().getScheduler().cancelTasks(this);
@@ -123,8 +112,7 @@ public class BananaMapRender extends JavaPlugin {
     			double playerZ = player.getLocation().getZ();
     			int chunkx = (int) (Math.round(playerX / 512));
     			int chunkz = (int) (Math.round(playerZ / 512)); 
-    			threadQueue.add(new GeneratorThread(this, chunkx, chunkz, world, prepareRegion(world, chunkx, chunkz),
-    			        world.getEnvironment() == Environment.NETHER));
+    			threadQueue.add(new GeneratorThread(this, chunkx, chunkz, world, prepareRegion(world, chunkx, chunkz)));
     		}
     		
 		}
@@ -164,12 +152,13 @@ public class BananaMapRender extends JavaPlugin {
 	    try{
     		if (cmd.getName().equalsIgnoreCase("bmr")) {
     			Location loc = null;
-    			World world = null;
-    			int worldNum = 0;
-    			int range = 0;
+    			World world;
+    			String worldName;
+                worldName = getServer().getWorlds().get(0).getName();
+                int range = 0;
     			
     			if (args.length > 0) range = Integer.parseInt(args[0]);
-    			if (args.length > 1) worldNum = Integer.parseInt(args[1]);
+    			if (args.length > 1) worldName = args[1];
     			
     			//Prevent user from shooting himself in the foot
     			if (range > varMaxRendersize()) {
@@ -180,41 +169,48 @@ public class BananaMapRender extends JavaPlugin {
     			//Location to render
     			if (sender instanceof Player) {
     			    final Player player = (Player) sender;
-    			    world = player.getWorld();
+    			    worldName = (worldName == null) ? player.getWorld().getName() : worldName;
                     loc = player.getLocation();
     			} else {
                     sender.sendMessage(ChatColor.RED + "You aren't a player");
-                    world = getServer().getWorlds().get(worldNum);
-                    loc = world.getSpawnLocation();
-    			}			    
-    
-    			//Create directory
-    			getDir(world.getName());
-    			markups.updateMapMarkers(world);
-    			sender.sendMessage(ChatColor.GREEN + "Starting map render");
-    			
-    			final int playerX = (int)(loc.getX() / 512);
-    			final int playerZ = (int)(loc.getZ() / 512);
-    			
-    			for (int i = 0; i <= range; i++) {
-    				for (int x = -i + playerX; x <= i + playerX; x++) {
-    					for (int z = -i + playerZ; z <= i + playerZ; z++)
-    					    threadQueue.add(new GeneratorThread(this, x, z, world, prepareRegion(world, x, z),
-    		                        world.getEnvironment() == Environment.NETHER));
-    				}
     			}
-    			
-    			return true;
+                world = getServer().getWorld(worldName);
+                if (world != null) {
+                    loc = (loc == null) ? world.getSpawnLocation() : loc;
+    			    //Create directory
+    			    String worldDir = getDir(world.getName());
+    			    markups.updateMapMarkers(world);
 
+                    sender.sendMessage(ChatColor.GREEN + "Starting map render");
+                    System.out.println("Start copying template files...");
+                    new CopierThread(new File(getDataFolder() + "/template"), new File(worldDir)).start();
+
+        			final int playerX = (int)(loc.getX() / 512);
+        			final int playerZ = (int)(loc.getZ() / 512);
+
+        			for (int i = 0; i <= range; i++) {
+        				for (int x = -i + playerX; x <= i + playerX; x++) {
+        					for (int z = -i + playerZ; z <= i + playerZ; z++)
+        					    threadQueue.add(new GeneratorThread(this, x, z, world, prepareRegion(world, x, z)));
+        				}
+        			}
+                    return true;
+                } else {
+                    sender.sendMessage(ChatColor.RED + "World " + worldName + " doesn't exist.");
+                }
     		}
-    	} catch (Exception e) {System.out.println("You're doing it wrong");}
+    	} catch (Exception e) {
+            System.out.println("You're doing it wrong");
+            e.printStackTrace();
+        }
 		return false;	
 	}
 	
 	// Config variables are fetched here (option names and default values)
 	
     public String getDir() {
-        return getConfiguration().getString("directory");
+        String dir = getConfiguration().getString("directory");
+        return (dir.charAt(dir.length() - 1) == '/') ? dir : dir + "/";
     }
     public String getDir(String worldName) {
         String directory = getDir() + worldName + "/";
@@ -418,6 +414,9 @@ public class BananaMapRender extends JavaPlugin {
         showWaterDepth = getConfiguration().getBoolean("depth.water", true);
         showLavaDepth = getConfiguration().getBoolean("depth.lava", true);
     }
-		
+
+    public boolean isPlayerHidden(Player player) {
+        return getConfiguration().getBoolean("hide." + player.getName(), false);
+    }
 }
 

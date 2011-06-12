@@ -18,8 +18,7 @@ public class RenderQueueTask implements Runnable {
     }
     
     public void run() {
-        plugin.threadQueue.add(new GeneratorThread(plugin, tileX, tileZ, world, plugin.prepareRegion(world, tileX, tileZ),
-                world.getEnvironment() == Environment.NETHER));
+        plugin.threadQueue.add(new GeneratorThread(plugin, tileX, tileZ, world, plugin.prepareRegion(world, tileX, tileZ)));
     }
     
 }

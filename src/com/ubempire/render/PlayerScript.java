@@ -167,13 +167,15 @@ public class PlayerScript {
     			    String rColor = plugin.varWorldguardRegionsColor();
     			    double rOpacity = plugin.varWorldguardRegionsOpacity(), rFillOpacity = plugin.varWorldguardRegionsFillOpacity();
     			    List<String> regions = c.getKeys("regions");
-    			    for(String region : regions) {
-    			        XZ = convertLocation(c.getDouble("regions." + region + ".min.x",0), c.getDouble("regions." + region + ".min.z",0));
-        	        	out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
-        	        	XZ = convertLocation(c.getDouble("regions." + region + ".max.x",0), c.getDouble("regions." + region + ".max.z",0));
-        	        	out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
-        	        	out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + rColor + "\";polygon.options.opacity = " + rOpacity + ";polygon.options.fillOpacity = " + rFillOpacity + ";map.addLayer(polygon);polygon.bindPopup(\""+region+"\");");
-    			    }
+                    if (regions != null) {
+                        for(String region : regions) {
+        			        XZ = convertLocation(c.getDouble("regions." + region + ".min.x",0), c.getDouble("regions." + region + ".min.z",0));
+            	        	out.print("var minX = "+XZ[0]+";var minZ = "+XZ[1]+";");
+            	        	XZ = convertLocation(c.getDouble("regions." + region + ".max.x",0), c.getDouble("regions." + region + ".max.z",0));
+            	        	out.print("var maxX = "+XZ[0]+";var maxZ = "+XZ[1]+";");
+            	        	out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + rColor + "\";polygon.options.opacity = " + rOpacity + ";polygon.options.fillOpacity = " + rFillOpacity + ";map.addLayer(polygon);polygon.bindPopup(\""+region+"\");");
+        			    }
+                    }
     			}
 			}
 			
@@ -216,6 +218,7 @@ public class PlayerScript {
     				    if (!(e instanceof LivingEntity)) continue;
     				    if (e instanceof Player) {
     				        if (!plugin.varEntitiesPlayers()) continue;
+                            if (plugin.isPlayerHidden((Player)e)) continue;
     				        Player player = (Player)e;
     		                XZ = convertLocation(player.getLocation().getX(),player.getLocation().getZ());
     		                out.print("var MyIcon = L.Icon.extend({iconUrl: 'http://minotar.net/avatar/"+player.getName()+"/32.png',iconSize: new L.Point(32, 32),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point("+(XZ[0])+","+(XZ[1])+"),popupAnchor: new L.Point("+(XZ[0])+"/2,"+(XZ[1])+"/2)});var icon = new MyIcon();var markerLocation = new L.LatLng("+(XZ[0])+", "+(XZ[1])+");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
