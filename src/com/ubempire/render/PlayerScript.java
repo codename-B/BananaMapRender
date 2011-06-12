@@ -83,9 +83,12 @@ public class PlayerScript {
 
             XZ = convertLocation(world.getSpawnLocation().getX(), world.getSpawnLocation().getZ());
             out.print("map.setView(new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + "),9);");
-
-            if (isDay(world)) out.print("document.getElementById('time').innerHTML=' Day';");
-            else out.print("document.getElementById('time').innerHTML=' Night';");
+            if (world.getEnvironment() == World.Environment.NETHER) {
+                out.print("document.getElementById('time').innerHTML=' Eternity';");
+            } else {
+                if (isDay(world)) out.print("document.getElementById('time').innerHTML=' Day';");
+                else out.print("document.getElementById('time').innerHTML=' Night';");
+            }
 
 
             /* Get Tile Layers */
