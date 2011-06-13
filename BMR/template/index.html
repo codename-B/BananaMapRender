@@ -64,19 +64,11 @@
     </div>
     
     <script type="text/javascript">
-    var cloudmadeUrl = '',
-    // create a CloudMade tile layer
-        cloudmadeAttribution = 'Map of the United Banana Empire',
-        cloudmade = new L.TileLayer(cloudmadeUrl, {minZoom: 7, maxZoom: 11, tileSize: 512, attribution: cloudmadeAttribution});
-
-    // initialize the map on the "map" div
-   //var map = new L.Map('map', {crs: L.Util.extend({}, L.CRS, {code: 'simple',projection: L.Projection.LonLat,transformation: new L.Transformation(1, 0, 1, 0)})});
-	
-	var map = new L.Map('map', {touchZoom:true, scrollWheelZoom:true,doubleClickZoom:false,zoomControl:true});
-	map.addLayer(cloudmade);
-
-
-    // set the map view to a given center and zoom and add the CloudMade layer
+        var cloudmadeUrl = '',
+        cloudmade = new L.TileLayer(cloudmadeUrl, {minZoom: 7, maxZoom: 11, tileSize: 512});
+	    var map = new L.Map('map', {touchZoom:true, scrollWheelZoom:true,doubleClickZoom:false,zoomControl:true});
+        map.attributionControl.setPrefix('Powered by <a href="http://leaflet.cloudmade.com/">Leaflet</a> and <a href="http://forums.bukkit.org/threads/misc-bananamaprender-1-0-minecraft-maps-faster-and-more-configurable-than-ever-860-866.19775/">Banana Map Render</a>');
+	    map.addLayer(cloudmade);
     </script>
     <script src="players.js"></script>
 	<script src="world.js"></script>

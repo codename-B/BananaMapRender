@@ -239,7 +239,8 @@ public class PlayerScript {
                 }
 
             }
-
+            /* Attribution string */
+            out.print("map.attributionControl.addAttribution(\"" + plugin.getAttributionString() + "\");");
 
         } catch (IOException e) {
             e.printStackTrace();

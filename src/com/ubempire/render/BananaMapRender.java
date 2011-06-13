@@ -526,5 +526,9 @@ public class BananaMapRender extends JavaPlugin {
     public boolean isPlayerHidden(Player player) {
         return getConfiguration().getBoolean("hide." + player.getName(), false);
     }
+
+    public String getAttributionString() {
+        return getConfiguration().getString("attribution", "Map of the United Banana Empire");
+    }
 }
 

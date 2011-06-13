@@ -2,6 +2,8 @@
 ### BananaMapRender configuration file - Review carefully! ###
 ##############################################################
 
+attribution: 'Nyan.'
+
 #Directory tiles world folders are placed in.
 directory: 'plugins/BukkitHTTPD/'
 
@@ -96,6 +98,10 @@ tile-entities:
     #display the sign contents.
     signs: true
 
+alias:
+    # You can alias world just like this
+    world: 'Mah Epic World!'
+    
 hide:
     # Names of people who won't be shown on the map. Good for NPCs and stealth guys.
     EzioAuditoreDaFirenze: true
