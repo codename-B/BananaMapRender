@@ -2,7 +2,6 @@
  Copyright (c) 2010-2011, CloudMade, Vladimir Agafonkin
  Leaflet is a BSD-licensed JavaScript library for map display and interaction.
  See http://cloudmade.github.com/Leaflet/ for more information.
-
 */
 var L={VERSION:"0.2",ROOT_URL:function(){for(var a=document.getElementsByTagName("script"),b=/^(.*\/)leaflet-?([\w-]*)\.js.*$/,c=0,d=a.length;c<d;c++){var e=a[c].src;if(e=e&&e.match(b)){if(e[2]=="include")break;return e[1]}}return"../../dist/"}(),noConflict:function(){L=this._originalL;return this},_originalL:L};L.Util={extend:function(a){for(var b=Array.prototype.slice.call(arguments,1),c=0,d=b.length,e;c<d;c++){e=b[c]||{};for(var f in e)e.hasOwnProperty(f)&&(a[f]=e[f])}return a},bind:function(a,b){return function(){return a.apply(b,arguments)}},stamp:function(){var a=0;return function(b){b._leaflet_id=b._leaflet_id||++a;return b._leaflet_id}}(),limitExecByInterval:function(a,b,c){function d(){e=!1;f&&(g.callee.apply(c,g),f=!1)}var e,f,g;return function(){g=arguments;e?f=!0:(e=!0,setTimeout(d,b),a.apply(c,
 g))}},deferExecByInterval:function(a,b,c){function d(){f=!1;a.apply(c,e)}var e,f;return function(){e=arguments;f||(f=!0,setTimeout(d,b))}},falseFn:function(){return!1},formatNum:function(a,b){var c=Math.pow(10,b||5);return Math.round(a*c)/c},setOptions:function(a,b){a.options=L.Util.extend({},a.options,b)},getParamString:function(a){var b=[],c;for(c in a)a.hasOwnProperty(c)&&b.push(c+"="+a[c]);return"?"+b.join("&")}};L.Class=function(){};
