@@ -13,6 +13,8 @@
 
 package com.ubempire.render;
 
+import com.nijiko.permissions.PermissionHandler;
+import com.nijikokun.bukkit.Permissions.Permissions;
 import net.minecraft.server.ChunkCoordIntPair;
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -21,6 +23,7 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,7 +36,23 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Logger;
 
+// Permissions FTW!
+
 public class BananaMapRender extends JavaPlugin {
+    // Experimental! Permissions
+    public static PermissionHandler permissionHandler;
+    private void setupPermissions() {
+      Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
+
+      if (permissionHandler == null) {
+          if (permissionsPlugin != null) {
+              permissionHandler = ((Permissions) permissionsPlugin).getHandler();
+          } else {
+              logger.info("Permission system not detected, defaulting to OP");
+          }
+      }
+    }
+    // Experimental end
 
     protected final static Logger logger = Logger.getLogger("Minecraft");
 
@@ -60,6 +79,7 @@ public class BananaMapRender extends JavaPlugin {
         multiColors = new HashMap<Integer, List<Color>>();
         setDefaultColors();
         loadVars();
+        displayWorldName();
 
         renderThreads = 0;
         threadQueue = new LinkedList<GeneratorThread>();
@@ -68,7 +88,9 @@ public class BananaMapRender extends JavaPlugin {
         renderStarter = new Timer();
         renderStarter.schedule(new RenderStarterTask(this), 1000, 1000);
 
-        displayWorldName();
+        // Experimental!
+        setupPermissions();
+        // Experimental end
 
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
                     public void run() {
@@ -101,13 +123,17 @@ public class BananaMapRender extends JavaPlugin {
             PrintWriter out = null;
             try {
                 out = new PrintWriter(new FileWriter(wfile));
-                out.print("document.getElementById('worldname').innerHTML = '" + world.getName() + "';");
+                out.print("document.getElementById('worldname').innerHTML = '" + getAlias(world) + "';");
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 if (out != null) out.close();
             }
         }
+    }
+
+    private String getAlias(World world) {
+        return getConfiguration().getString("alias." + world.getName(), world.getName()); // Another little goodie :P
     }
 
     public void chunkToRender() {
@@ -155,9 +181,21 @@ public class BananaMapRender extends JavaPlugin {
     }
 
     public boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel, final String[] args) {
-        if (!sender.isOp()) return false;
+        boolean hasPermission = false;
+        if (sender instanceof Player)
+        {
+            hasPermission = permissionHandler.has((Player) sender, "bmr.render");
+        }
+        if (!sender.isOp() && !hasPermission) {
+            sender.sendMessage("You don't have permission to do it.");
+            return false;
+        }
         try {
             if (cmd.getName().equalsIgnoreCase("bmr")) {
+
+                // Not calling displayWorldName here is a generally bad idea, because sometimes people remove old maps altogether.
+                displayWorldName();
+
                 Location loc = null;
                 World world;
                 String worldName;
@@ -221,7 +259,7 @@ public class BananaMapRender extends JavaPlugin {
     public String getDir(String worldName) {
         String directory = getDir() + worldName + "/";
         File dir = new File((directory.substring(0, directory.length() - (directory.endsWith("/") ? 1 : 0))));
-        if (!dir.exists()) dir.mkdir();
+        if (!dir.exists()) dir.mkdirs(); // Make full path, not just one folder. Because shit generally happens.
         return directory;
     }
 
