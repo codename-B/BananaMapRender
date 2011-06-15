@@ -94,9 +94,12 @@ tile-entities:
     #If creature spawners are enabled, this is the chance of them actually showing.
     spawner-chance: 0.2
     
-    #Show BMR signs? BMR signs are signs with [BMR] in the first line. Clicking the icon will
-    #display the sign contents.
-    signs: true
+    signs:
+        # Controls if signs should be shown at all. Defaults to .*
+        show: true
+        # Signs, where ANY of the lines match this regex will be shown. Defaults to .*. CASE SENSITIVE.
+        # Example:
+        filter-regex: '\[MAP\]'
 
 alias:
     # You can alias world just like this

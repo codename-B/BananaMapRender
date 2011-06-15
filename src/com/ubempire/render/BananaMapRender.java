@@ -35,6 +35,7 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 // Permissions FTW!
 
@@ -360,7 +361,7 @@ public class BananaMapRender extends JavaPlugin {
     }
 
     protected boolean varTileEntitiesSigns() {
-        return getConfiguration().getBoolean("tile-entities.signs", true);
+        return getConfiguration().getBoolean("tile-entities.signs.show", true);
     }
 
     protected boolean varDepthWater() {
@@ -529,6 +530,10 @@ public class BananaMapRender extends JavaPlugin {
 
     public String getAttributionString() {
         return getConfiguration().getString("attribution", "Map of the United Banana Empire");
+    }
+
+    public Pattern getSignRegex() {
+        return Pattern.compile(getConfiguration().getString("tile-entities.signs.filter-regex", ".*"));
     }
 }
 
