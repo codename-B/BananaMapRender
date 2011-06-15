@@ -12,10 +12,10 @@
 
 package com.ubempire.render;
 
-import java.awt.Color;
-
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.util.Vector;
+
+import java.awt.*;
 
 public class IdToColor {
 
@@ -36,16 +36,15 @@ public class IdToColor {
 		
 		//Water depth
 		if((id == 8 || id == 9) && plugin.varDepthWater()) {
-    		Vector proc = vec;
-    		int Y = vec.getBlockY();
+            int Y = vec.getBlockY();
     		int procID = id;
-    		while(proc.getY()>1 && (procID == 8 || procID == 9)) {
-    			proc.setY(proc.getY()-1);
-    			procID = chunk.getBlockTypeId(proc.getBlockX(), proc.getBlockY(), proc.getBlockZ());
+    		while(vec.getY()>1 && (procID == 8 || procID == 9)) {
+    			vec.setY(vec.getY() - 1);
+    			procID = chunk.getBlockTypeId(vec.getBlockX(), vec.getBlockY(), vec.getBlockZ());
     		}
-            int newR = (18-(Y-proc.getBlockY()))*4;
-            int newG = (18-(Y-proc.getBlockY()))*7;
-            int newB = (18-(Y-proc.getBlockY()))*16;
+            int newR = (18-(Y- vec.getBlockY()))*4;
+            int newG = (18-(Y- vec.getBlockY()))*7;
+            int newB = (18-(Y- vec.getBlockY()))*16;
             if(newR<0)newR=0;
             if(newG<0)newG=0;
             if(newB<0)newB=0;
@@ -57,16 +56,15 @@ public class IdToColor {
 		
 		//Lava depth
 		if((id == 10 || id == 11) && plugin.varDepthLava()) {
-    		Vector proc = vec;
-    		int Y = vec.getBlockY();
+            int Y = vec.getBlockY();
     		int procID = id;
-    		while(proc.getY()>3 && (procID == 10 || procID == 11)) {
-    			proc.setY(proc.getY()-3);
-    			procID = chunk.getBlockTypeId(proc.getBlockX(), proc.getBlockY(), proc.getBlockZ());
+    		while(vec.getY()>3 && (procID == 10 || procID == 11)) {
+    			vec.setY(vec.getY() - 3);
+    			procID = chunk.getBlockTypeId(vec.getBlockX(), vec.getBlockY(), vec.getBlockZ());
     		}
-			int newR = (54-(Y-proc.getBlockY()))*4;
-			int newG = (54-(Y-proc.getBlockY()))*1;
-			int newB = (54-(Y-proc.getBlockY()))*0;
+			int newR = (54-(Y- vec.getBlockY()))*4;
+			int newG = (54-(Y- vec.getBlockY()));
+			int newB = 0; // It's like EPIC :)
 			if(newR<0)newR=0;
 			if(newG<0)newG=0;
 			if(newB<0)newB=0;
@@ -78,11 +76,10 @@ public class IdToColor {
 		
 		//Sand depth
 		if(id == 12 && plugin.varDepthGround()) {   
-			int xiG=230;
+			int xiG;
 			int multiplier = vec.getBlockY();
-			int mxp = 255-((128-multiplier)*2-1)+70;
-			int mxR = mxp;
-			if(mxR>255)mxR=255;
+            int mxR = 255-((128-multiplier)*2-1)+70;
+			if (mxR>255) mxR=255;
 			xiG = mxR-70;
 			color = new Color(xiG+70, xiG+50, xiG+30);
 		}

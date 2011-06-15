@@ -57,7 +57,7 @@ public class PlayerScript {
         if (e instanceof Spider) return "Spider";
         if (e instanceof Zombie) return "Zombie";
         if (e instanceof Wolf) return "Wolf";
-        // IntelliJ thinks it's always false, need investigation
+        // TODO: IntelliJ thinks it's always false, need investigation
         if (e instanceof PigZombie) return "PigZombie";
         if (e instanceof Ghast) return "Ghast";
         if (e instanceof Slime) return "Slime";
@@ -157,11 +157,13 @@ public class PlayerScript {
                     List<String> regions = c.getKeys("regions");
                     if (regions != null) {
                         for (String region : regions) {
-                            XZ = convertLocation(c.getDouble("regions." + region + ".min.x", 0), c.getDouble("regions." + region + ".min.z", 0));
-                            out.print("var minX = " + XZ[0] + ";var minZ = " + XZ[1] + ";");
-                            XZ = convertLocation(c.getDouble("regions." + region + ".max.x", 0), c.getDouble("regions." + region + ".max.z", 0));
-                            out.print("var maxX = " + XZ[0] + ";var maxZ = " + XZ[1] + ";");
-                            out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + rColor + "\";polygon.options.opacity = " + rOpacity + ";polygon.options.fillOpacity = " + rFillOpacity + ";map.addLayer(polygon);polygon.bindPopup(\"" + region + "\");");
+                            if (region.equals("__global__")) {
+                                XZ = convertLocation(c.getDouble("regions." + region + ".min.x", 0), c.getDouble("regions." + region + ".min.z", 0));
+                                out.print("var minX = " + XZ[0] + ";var minZ = " + XZ[1] + ";");
+                                XZ = convertLocation(c.getDouble("regions." + region + ".max.x", 0), c.getDouble("regions." + region + ".max.z", 0));
+                                out.print("var maxX = " + XZ[0] + ";var maxZ = " + XZ[1] + ";");
+                                out.print("p1 = new L.LatLng(minX, minZ),p2 = new L.LatLng(minX, maxZ),p3 = new L.LatLng(maxX, minZ),p4 = new L.LatLng(maxX, maxZ),polygonPoints = [p1, p2, p4, p3];var polygon = new L.Polygon(polygonPoints);polygon.options.color = \"" + rColor + "\";polygon.options.opacity = " + rOpacity + ";polygon.options.fillOpacity = " + rFillOpacity + ";map.addLayer(polygon);polygon.bindPopup(\"" + region + "\");");
+                            }
                         }
                     }
                 }
@@ -206,14 +208,15 @@ public class PlayerScript {
                         if (!(e instanceof LivingEntity)) continue;
                         if (e instanceof Player) {
                             if (!plugin.varEntitiesPlayers()) continue;
-                            if (plugin.isPlayerHidden((Player) e)) continue;
-                            Player player = (Player) e;
-                            XZ = convertLocation(player.getLocation().getX(), player.getLocation().getZ());
-                            out.print("var MyIcon = L.Icon.extend({iconUrl: 'http://minotar.net/avatar/" + player.getName() + "/32.png',iconSize: new L.Point(32, 32),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + "),popupAnchor: new L.Point(" + (XZ[0]) + "/2," + (XZ[1]) + "/2)});var icon = new MyIcon();var markerLocation = new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + ");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
-                            if (plugin.varEntitiesPlayerPopups())
-                                out.print("marker.bindPopup(\"<b>" + player.getName() + "</b>\");");
-                            out.print("");
-                            out.print("document.getElementById(\"players\").innerHTML=document.getElementById(\"players\").innerHTML+\"<a href='#' onclick='map.setView(new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + "), 9);'>\"+\"" + player.getName() + "</a>\";");
+                            if (!plugin.isPlayerHidden((Player) e)) {
+                                Player player = (Player) e;
+                                XZ = convertLocation(player.getLocation().getX(), player.getLocation().getZ());
+                                out.print("var MyIcon = L.Icon.extend({iconUrl: 'http://minotar.net/avatar/" + player.getName() + "/32.png',iconSize: new L.Point(32, 32),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + "),popupAnchor: new L.Point(" + (XZ[0]) + "/2," + (XZ[1]) + "/2)});var icon = new MyIcon();var markerLocation = new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + ");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
+                                if (plugin.varEntitiesPlayerPopups())
+                                    out.print("marker.bindPopup(\"<b>" + player.getName() + "</b>\");");
+                                out.print("");
+                                out.print("document.getElementById(\"players\").innerHTML=document.getElementById(\"players\").innerHTML+\"<a href='#' onclick='map.setView(new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + "), 9);'>\"+\"" + player.getName() + "</a>\";");
+                            }
                         } else {
                             String mn = monsterName(e);
                             if (plugin.varEntitiesTamedWolves() && mn.equalsIgnoreCase("Wolf")) {
@@ -236,7 +239,8 @@ public class PlayerScript {
                 }
 
             }
-
+            /* Attribution string */
+            out.print("map.attributionControl.addAttribution(\"" + plugin.getAttributionString() + "\");");
 
         } catch (IOException e) {
             e.printStackTrace();

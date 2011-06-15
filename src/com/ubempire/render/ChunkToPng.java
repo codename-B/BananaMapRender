@@ -35,8 +35,6 @@ public class ChunkToPng {
     BufferedImage img = null;
     File file;
     String directory;
-    int zoom = 9 - 2;
-    public int leftshift = 1 << zoom;
 
     ChunkToPng(BananaMapRender plugin) {
         this.plugin = plugin;
