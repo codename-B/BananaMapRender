@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class PlayerScript {
 
@@ -185,15 +186,23 @@ public class PlayerScript {
                             XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
                             out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Spawner.png',iconSize: new L.Point(" + 20 + "," + 20 + "),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + "),popupAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + ")});var icon = new MyIcon();var markerLocation = new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + ");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
                         }
-                        if (plugin.varTileEntitiesSigns() && b instanceof Sign) {
+                        if (b instanceof Sign) {
+                            Pattern signRegex = plugin.getSignRegex();
                             String[] signLines = ((Sign) b).getLines();
-                            if (signLines.length > 0 && signLines[0].equalsIgnoreCase("[BMR]")) {
+                            Boolean signMatches = false;
+                            for (String line : signLines) {
+                                    if (signRegex.matcher(line).matches()) {
+                                        signMatches = true;
+                                        break;
+                                    }
+                            }
+                            if (signLines.length > 0 && signMatches && plugin.varTileEntitiesSigns()) {
                                 XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
                                 out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Sign.png',iconSize: new L.Point(" + 32 + "," + 32 + "),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + "),popupAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + ")});var icon = new MyIcon();var markerLocation = new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + ");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);marker.bindPopup(\"");
 
-                                for (int i = 1; i < signLines.length; i++)
-                                    if (!signLines[i].equals(""))
-                                        out.print(signLines[i] + "<br/>");
+                                for (String signLine : signLines)
+                                    if (!signLine.equals(""))
+                                        out.print(signLine + "<br/>");
                                 out.print("\");");
                             }
                         }
