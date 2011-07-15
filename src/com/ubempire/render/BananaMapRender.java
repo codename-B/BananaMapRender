@@ -158,7 +158,7 @@ public class BananaMapRender extends JavaPlugin {
         List<Player> players = world.getPlayers();
         for (Player player : players) {
             CraftPlayer p = (CraftPlayer) player;
-            chunksInUse.addAll(p.getHandle().g);
+            chunksInUse.addAll(p.getHandle().playerChunkCoordIntPairs);
         }
         return chunksInUse;
     }
