@@ -22,7 +22,7 @@ public class GeneratorThread extends Thread {
     World world;
     boolean nether = false;
     boolean done = false;
-    ChunkSnapshot[][] region;
+    ChunkSnapshot[][] region = new ChunkSnapshot[32][32];
 
     GeneratorThread(BananaMapRender plugin, int tileX, int tileZ, World world) {
         super();
@@ -35,8 +35,35 @@ public class GeneratorThread extends Thread {
 
     @Override
 	public void run() {
-    	region = BananaMapRender.prepareRegion(world, tileX, tileZ);
+    	int taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new RegionGatherer(), 1, 10);
+    	try {
+    		synchronized (region) {
+    			region.wait();
+			}
+		} catch (InterruptedException ex) {
+		}
+    	plugin.getServer().getScheduler().cancelTask(taskId);
+    	
         (new ChunkToPng(plugin)).makeTile(tileX, tileZ, world, region, nether);
         done = true;
+    }
+
+    private class RegionGatherer implements Runnable {
+    	int row = 0;
+
+		public RegionGatherer() {
+		}
+
+		@Override
+		public void run() {
+			if (row < 32) {
+				BananaMapRender.prepareRegionRow(world, tileX, tileZ, row++);
+			}
+    		if (row == 32) {
+        		synchronized (region) {
+        			region.notifyAll();
+    			}
+    		}
+    	}
     }
 }
