@@ -171,8 +171,7 @@ public class BananaMapRender extends JavaPlugin {
                 displayWorldName();
 
                 if (args.length > 0 && args[0].equalsIgnoreCase("length")) {
-                    sender.sendMessage("The render queue has " + renderThreads
-                            + " regions.");
+                    sender.sendMessage("The render queue has " + threadQueue.size() + " (" + renderThreads + " running) regions.");
                     return true;
                 }
 
