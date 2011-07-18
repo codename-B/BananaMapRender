@@ -2,16 +2,18 @@ package com.ubempire.render;
 
 import java.io.*;
 
+import org.bukkit.util.FileUtil;
+
 /*
  * CopierThread.java
  *
  * Version 1.0
  *
  * Last Edited
- * 12/06/2011
+ * 18/07/2011
  *
  * written by K900
- *
+ * forked by Nightgunner5
  */
 public class CopierThread extends Thread {
     private File copyTo;
@@ -24,27 +26,15 @@ public class CopierThread extends Thread {
         }
         if (sourceLocation.isDirectory()) {
             if (!targetLocation.exists()) {
-                targetLocation.mkdir();
+                targetLocation.mkdirs();
             }
 
-            String[] children = sourceLocation.list();
-            for (String aChildren : children) {
-                copy(new File(sourceLocation, aChildren),
-                        new File(targetLocation, aChildren));
+            File[] children = sourceLocation.listFiles();
+            for (File child : children) {
+                copy(child, child);
             }
         } else {
-
-            InputStream in = new FileInputStream(sourceLocation);
-            OutputStream out = new FileOutputStream(targetLocation);
-
-            // Copy the bits from instream to outstream
-            byte[] buf = new byte[1024];
-            int len;
-            while ((len = in.read(buf)) > 0) {
-                out.write(buf, 0, len);
-            }
-            in.close();
-            out.close();
+        	FileUtil.copy(sourceLocation, targetLocation);
         }
     }
 
@@ -54,10 +44,11 @@ public class CopierThread extends Thread {
         this.copyTo = copyTo;
     }
 
-    public void run() {
+    @Override
+	public void run() {
         try {
-            System.out.println("Done copying files.");
             copy(copyFrom, copyTo);
+            System.out.println("Done copying files.");
         } catch (IOException e) {
             e.printStackTrace();
         }

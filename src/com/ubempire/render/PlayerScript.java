@@ -4,11 +4,11 @@
  * Version 0.10
  *
  * Last Edited
- * 12/06/2011
+ * 18/07/2011
  * 
  * written by codename_B
  * forked by K900
- *
+ * forked by Nightgunner5
  */
 
 package com.ubempire.render;
@@ -21,10 +21,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.entity.*;
 import org.bukkit.util.config.Configuration;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -38,17 +35,17 @@ public class PlayerScript {
         directory = plugin.getDir();
     }
 
-    private boolean isDay(World world) {
-        long time = world.getFullTime() / 1000;
-        return time < 13 || time > 23;
+    private static boolean isDay(World world) {
+        long time = world.getTime() / 1000;
+        return time < 10;
     }
 
-    private double[] convertLocation(double d, double e) {
+    private static double[] convertLocation(double d, double e) {
         double offset = 1;
         return new double[]{d / -512.0 + offset, e / -512.0 + offset};
     }
 
-    String monsterName(Entity e) {
+    static String monsterName(Entity e) {
         if (e instanceof Pig) return "Pig";
         if (e instanceof Cow) return "Cow";
         if (e instanceof Sheep) return "Sheep";
@@ -56,10 +53,9 @@ public class PlayerScript {
         if (e instanceof Creeper) return "Creeper";
         if (e instanceof Skeleton) return "Skeleton";
         if (e instanceof Spider) return "Spider";
+        if (e instanceof PigZombie) return "PigZombie";
         if (e instanceof Zombie) return "Zombie";
         if (e instanceof Wolf) return "Wolf";
-        // TODO: IntelliJ thinks it's always false, need investigation
-        if (e instanceof PigZombie) return "PigZombie";
         if (e instanceof Ghast) return "Ghast";
         if (e instanceof Slime) return "Slime";
         if (e instanceof Squid) return "Squid";
@@ -95,33 +91,23 @@ public class PlayerScript {
             /* Get Tile Layers */
 
             File dir = new File(plugin.getDir(world.getName()));
-            String[] filenames = null;
-            String[] children = dir.list();
-            if (children != null) {
-                filenames = new String[children.length];
-                int count = 0;
-                for (String aChildren : children) {
-                    if (aChildren.endsWith(".png") && aChildren.contains(",")) {
-                        filenames[count] = aChildren;
-                        count++;
-                    }
-                }
+            File[] children = dir.listFiles(new FileFilter() {
+				@Override
+				public boolean accept(File pathname) {
+					return pathname.getName().contains(",") && pathname.getName().endsWith(".png");
+				}
+            });
 
-            }
-
-            for (String png : filenames) {
-                if (png != null) {
-                    String XK[] = png.split("[.,]");
-                    int[] x0z0 = new int[XZ.length];
-                    for (int i = 0; i < 2; i++)
-                        x0z0[i] = Integer.parseInt(XK[i]);
-                    out.print("var imageBounds = new L.LatLngBounds(new L.LatLng(" + (0 - x0z0[0]) + "," + (0 - x0z0[1]) + "),new L.LatLng(" + (0 - x0z0[0]) + "+1," + (0 - x0z0[1]) + "+1));var image = new L.ImageOverlay(\"" + XK[0] + "," + XK[1] + ".png\", imageBounds);map.addLayer(image);");
-                    if (plugin.showNightTiles()) {
-                        /* Show Night Tiles if option is enabled in config.txt */
-                        if (!isDay(world)) {
-
-                            out.print("var imageBounds = new L.LatLngBounds(new L.LatLng(" + (0 - x0z0[0]) + "," + (0 - x0z0[1]) + "),new L.LatLng(" + (0 - x0z0[0]) + "+1," + (0 - x0z0[1]) + "+1));var image = new L.ImageOverlay(\"images/night.png\", imageBounds);map.addLayer(image);");
-                        }
+            for (File png : children) {
+                String XK[] = png.getName().split("[.,]");
+                int[] x0z0 = new int[XZ.length];
+                for (int i = 0; i < 2; i++)
+                    x0z0[i] = Integer.parseInt(XK[i]);
+                out.print("var imageBounds = new L.LatLngBounds(new L.LatLng(" + (0 - x0z0[0]) + "," + (0 - x0z0[1]) + "),new L.LatLng(" + (0 - x0z0[0]) + "+1," + (0 - x0z0[1]) + "+1));var image = new L.ImageOverlay(\"" + XK[0] + "," + XK[1] + ".png\", imageBounds);map.addLayer(image);");
+                if (plugin.showNightTiles()) {
+                    /* Show Night Tiles if option is enabled in config.txt */
+                    if (!isDay(world)) {
+                        out.print("var imageBounds = new L.LatLngBounds(new L.LatLng(" + (0 - x0z0[0]) + "," + (0 - x0z0[1]) + "),new L.LatLng(" + (0 - x0z0[0]) + "+1," + (0 - x0z0[1]) + "+1));var image = new L.ImageOverlay(\"images/night.png\", imageBounds);map.addLayer(image);");
                     }
                 }
             }
@@ -255,7 +241,8 @@ public class PlayerScript {
             e.printStackTrace();
         }
 
-        out.close();
+        if (out != null)
+        	out.close();
 
         return "Error while writing player.js!";
 

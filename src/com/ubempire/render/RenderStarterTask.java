@@ -4,17 +4,18 @@ import java.util.TimerTask;
 
 public class RenderStarterTask extends TimerTask {
 
-    BananaMapRender plugin;
+	BananaMapRender plugin;
     RenderStarterTask(BananaMapRender plugin) {
         this.plugin = plugin;
     }
     
-    public void run() {
+    @Override
+	public void run() {
         for (int i = 0; i < plugin.threadQueue.size(); i++) {
             GeneratorThread t = plugin.threadQueue.get(i);
             if (!t.isAlive()) {
                 if (!t.done && plugin.renderThreads < plugin.varMaxThreads()) {
-                    plugin.renderThreads += 1;
+                    plugin.renderThreads++;
                     try {
                         t.start();
                     } catch (IllegalThreadStateException e) {
@@ -22,9 +23,9 @@ public class RenderStarterTask extends TimerTask {
                     }
                 }
                 if (t.done) {
-                    plugin.renderThreads -= 1;
+                    plugin.renderThreads--;
                     plugin.threadQueue.remove(i);
-                    i -= 1;
+                    i--;
                 }
             }
         }
