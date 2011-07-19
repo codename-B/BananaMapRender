@@ -40,7 +40,7 @@ public class BananaMapRender extends JavaPlugin {
 
     Map<Integer, Color> colors;
     Map<Integer, List<Color>> multiColors;
-    boolean showDepth, showWaterDepth, showLavaDepth;
+    boolean depthNormal, showDepth, showWaterDepth, showLavaDepth;
 
     @Override
     public void onDisable() {
@@ -360,6 +360,10 @@ public class BananaMapRender extends JavaPlugin {
         return showDepth;
     }
 
+    protected boolean varDepthNormal() {
+        return depthNormal;
+    }
+
     protected Color varColor(int id) {
         if (colors.containsKey(id))
             return colors.get(id);
@@ -503,6 +507,7 @@ public class BananaMapRender extends JavaPlugin {
             if (values.size() < 3) continue;
             colors.put(id, new Color(values.get(0), values.get(1), values.get(2)));
         }
+        depthNormal = getConfiguration().getBoolean("depth.normal", true);
         showDepth = getConfiguration().getBoolean("depth.ground", true);
         showWaterDepth = getConfiguration().getBoolean("depth.water", true);
         showLavaDepth = getConfiguration().getBoolean("depth.lava", true);
