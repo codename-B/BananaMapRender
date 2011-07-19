@@ -57,7 +57,7 @@ public class GeneratorThread extends Thread {
 		@Override
 		public void run() {
 			if (row < 32) {
-				BananaMapRender.prepareRegionRow(world, tileX, tileZ, row++);
+				region[row] = BananaMapRender.prepareRegionRow(world, tileX, tileZ, row++);
 			}
     		if (row == 32) {
         		synchronized (region) {
