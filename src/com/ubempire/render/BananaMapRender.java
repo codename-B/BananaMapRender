@@ -2,59 +2,34 @@
  * BananaMapRender.java
  * 
  * Version 0.1
- *
+ * 
  * Last Edited
- * 12/06/2011
+ * 18/07/2011
  * 
  * written by codename_B
  * forked by K900
- * 
+ * forked by Nightgunner5
  */
 
 package com.ubempire.render;
 
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
-import net.minecraft.server.ChunkCoordIntPair;
-import org.bukkit.*;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.awt.*;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-// Permissions FTW!
+import org.bukkit.*;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class BananaMapRender extends JavaPlugin {
-    // Experimental! Permissions
-    public static PermissionHandler permissionHandler;
-    private void setupPermissions() {
-      Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
-
-      if (permissionHandler == null) {
-          if (permissionsPlugin != null) {
-              permissionHandler = ((Permissions) permissionsPlugin).getHandler();
-          } else {
-              logger.info("Permission system not detected, defaulting to OP");
-          }
-      }
-    }
-    // Experimental end
-
     protected final static Logger logger = Logger.getLogger("Minecraft");
 
     Timer renderStarter;
@@ -67,6 +42,7 @@ public class BananaMapRender extends JavaPlugin {
     Map<Integer, List<Color>> multiColors;
     boolean showDepth, showWaterDepth, showLavaDepth;
 
+    @Override
     public void onDisable() {
         final PluginDescriptionFile pdfFile = getDescription();
         System.out.println("[" + (pdfFile.getName()) + "]" + " version " + pdfFile.getVersion() + " is disabled!");
@@ -74,6 +50,7 @@ public class BananaMapRender extends JavaPlugin {
         renderStarter.cancel();
     }
 
+    @Override
     public void onEnable() {
         IdToColor.plugin = this;
         colors = new HashMap<Integer, Color>();
@@ -89,24 +66,21 @@ public class BananaMapRender extends JavaPlugin {
         renderStarter = new Timer();
         renderStarter.schedule(new RenderStarterTask(this), 1000, 1000);
 
-        // Experimental!
-        setupPermissions();
-        // Experimental end
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                for (World world : getServer().getWorlds()) {
+                    markups.updateMapMarkers(world);
+                }
+            }
+        }, 0, varMarkerUpdatesFrequency() * 60 * 20);
 
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-                    public void run() {
-                        for (World world : getServer().getWorlds()) {
-                            markups.updateMapMarkers(world);
-                        }
-                    }
-                }, 0, varMarkerUpdatesFrequency() * 60 * 20);
-
-
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
-                    public void run() {
-                        chunkToRender();
-                    }
-                }, 0, varTileCheckerFrequency() * 60 * 20);
+            @Override
+            public void run() {
+                chunkToRender();
+            }
+        }, 0, varTileCheckerFrequency() * 60 * 20);
 
         final PluginDescriptionFile pdfFile = getDescription();
         System.out.println("[" + (pdfFile.getName()) + "]" + " version " + pdfFile.getVersion() + " is enabled!");
@@ -146,56 +120,66 @@ public class BananaMapRender extends JavaPlugin {
                 double playerZ = player.getLocation().getZ();
                 int chunkx = (int) (Math.round(playerX / 512));
                 int chunkz = (int) (Math.round(playerZ / 512));
-                threadQueue.add(new GeneratorThread(this, chunkx, chunkz, world, prepareRegion(world, chunkx, chunkz)));
+                threadQueue.add(new GeneratorThread(this, chunkx, chunkz, world));
             }
-
         }
     }
 
-    @SuppressWarnings("unchecked")
-    Set<ChunkCoordIntPair> getChunksInUse(World world) {
-        Set<ChunkCoordIntPair> chunksInUse = new HashSet<ChunkCoordIntPair>();
-        List<Player> players = world.getPlayers();
-        for (Player player : players) {
-            CraftPlayer p = (CraftPlayer) player;
-            chunksInUse.addAll(p.getHandle().playerChunkCoordIntPairs);
-        }
-        return chunksInUse;
-    }
+    static Set<Chunk> getChunksInUse(World world) {
+        HashSet<Chunk> chunks = new HashSet<Chunk>();
 
-    ChunkSnapshot[][] prepareRegion(World world, int x, int z) {
-        Set<ChunkCoordIntPair> chunksInUse = getChunksInUse(world);
-
-        ChunkSnapshot[][] region = new ChunkSnapshot[32][32];
-        for (int i = 0; i < 32; i++)
-            for (int j = 0; j < 32; j++) {
-                int cx = x * 32 + i, cz = z * 32 + j;
-                Chunk chunk = world.getChunkAt(cx, cz);
-                region[i][j] = chunk.getChunkSnapshot();
-                if (!chunksInUse.contains(new ChunkCoordIntPair(cx, cz))) {
-                    for (Entity e : chunk.getEntities())
-                        if (e instanceof LivingEntity) e.remove();
-                    world.unloadChunk(cx, cz, false);
+        for (Player player : world.getPlayers()) {
+            Chunk center = player.getLocation().getBlock().getChunk();
+            // No way in the Bukkit spec to get the view radius, so let's settle for the maximum.
+            for (int x = -15; x <= 15; x++) {
+                for (int z = -15; z <= 15; z++) {
+                    chunks.add(world.getChunkAt(center.getX() + x, center.getZ() + z));
                 }
             }
+        }
+
+        return chunks;
+    }
+
+    static ChunkSnapshot[] prepareRegionRow(World world, int x, int z, int row) {
+        Set<Chunk> chunksInUse = getChunksInUse(world);
+
+        ChunkSnapshot[] region = new ChunkSnapshot[32];
+        for (int i = 0; i < 32; i++) {
+            int cx = x * 32 + row, cz = z * 32 + i;
+            Chunk chunk = world.getChunkAt(cx, cz);
+            region[i] = chunk.getChunkSnapshot();
+            if (!chunksInUse.contains(chunk)) {
+                world.unloadChunkRequest(cx, cz);
+            }
+        }
         return region;
     }
 
-    public boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel, final String[] args) {
-        boolean hasPermission = false;
-        if (sender instanceof Player)
-        {
-            hasPermission = permissionHandler.has((Player) sender, "bmr.render");
+    static ChunkSnapshot[][] prepareRegion(World world, int x, int z) {
+        ChunkSnapshot[][] region = new ChunkSnapshot[32][32];
+        for (int row = 0; row < 32; row++) {
+        	region[row] = prepareRegionRow(world, x, z, 0);
         }
-        if (!sender.isOp() && !hasPermission) {
+        return region;
+    }
+
+    @Override
+    public boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel, final String[] args) {
+        if (!sender.hasPermission("bmr.render")) {
             sender.sendMessage("You don't have permission to do it.");
-            return false;
+            return true;
         }
         try {
-            if (cmd.getName().equalsIgnoreCase("bmr")) {
+            if (commandLabel.equalsIgnoreCase("bmr")) {
 
                 // Not calling displayWorldName here is a generally bad idea, because sometimes people remove old maps altogether.
                 displayWorldName();
+
+                if (args.length > 0 && args[0].equalsIgnoreCase("length")) {
+                    sender.sendMessage("The render queue has " + threadQueue.size() + " (" + renderThreads + " running) regions.");
+                    return true;
+                }
 
                 Location loc = null;
                 World world;
@@ -227,21 +211,21 @@ public class BananaMapRender extends JavaPlugin {
 
                     sender.sendMessage(ChatColor.GREEN + "Starting map render");
                     System.out.println("Start copying template files...");
-                    new CopierThread(new File(getDataFolder() + "/template"), new File(worldDir)).start();
+                    new CopierThread(new File(getDataFolder(), "template"), new File(worldDir)).start();
 
                     final int playerX = (int) (loc.getX() / 512);
                     final int playerZ = (int) (loc.getZ() / 512);
 
                     for (int i = 0; i <= range; i++) {
                         for (int x = -i + playerX; x <= i + playerX; x++) {
-                            for (int z = -i + playerZ; z <= i + playerZ; z++)
-                                threadQueue.add(new GeneratorThread(this, x, z, world, prepareRegion(world, x, z)));
+                            for (int z = -i + playerZ; z <= i + playerZ; z++) {
+                                threadQueue.add(new GeneratorThread(this, x, z, world));
+                            }
                         }
                     }
                     return true;
-                } else {
-                    sender.sendMessage(ChatColor.RED + "World " + worldName + " doesn't exist.");
                 }
+                sender.sendMessage(ChatColor.RED + "World " + worldName + " doesn't exist.");
             }
         } catch (Exception e) {
             System.out.println("You're doing it wrong");
@@ -379,13 +363,13 @@ public class BananaMapRender extends JavaPlugin {
     protected Color varColor(int id) {
         if (colors.containsKey(id))
             return colors.get(id);
-        else return new Color(255, 255, 255); //Default color
+        return new Color(255, 255, 255); //Default color
     }
 
     protected Color varColor(int id, int damage) {
         if (multiColors.containsKey(id) && damage < multiColors.get(id).size())
             return multiColors.get(id).get(damage);
-        else return varColor(id);
+        return varColor(id);
     }
 
     private void setDefaultColors() {

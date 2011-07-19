@@ -42,7 +42,7 @@ public class ChunkToPng {
     }
 
 
-    private AffineTransform findTranslation(AffineTransform at, BufferedImage bi) {
+    private static AffineTransform findTranslation(AffineTransform at, BufferedImage bi) {
         Point2D p2din, p2dout;
 
         p2din = new Point2D.Double(0.0, 0.0);
@@ -117,7 +117,7 @@ public class ChunkToPng {
         return false;
     }
 
-    public Color getHighestBlockColor(int x, int z, ChunkSnapshot chunk, boolean isNether) {
+    public static Color getHighestBlockColor(int x, int z, ChunkSnapshot chunk, boolean isNether) {
         Color color = new Color(200, 80, 5);
         int highest;
         highest = chunk.getHighestBlockYAt(x, z);
@@ -138,8 +138,8 @@ public class ChunkToPng {
         return color;
     }
 
-    public int ageInHours(File file) {
-        if (file.exists()) return (int) ((System.currentTimeMillis() - file.lastModified()) / 3600000.0);
-        else return 65535;
+    public static int ageInHours(File file) {
+        if (file.exists()) return (int) ((System.currentTimeMillis() - file.lastModified()) / 3600000L);
+		return 65535;
     }
 }
