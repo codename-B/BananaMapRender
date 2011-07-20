@@ -21,6 +21,7 @@ public class CopierThread extends Thread {
     public void copy(File sourceLocation, File targetLocation) throws IOException {
         if (!sourceLocation.exists()) {
             System.out.println("Source files not found! Please check if you have everything set up correctly.");
+            return;
         }
         if (sourceLocation.isDirectory()) {
             if (!targetLocation.exists()) {
@@ -54,10 +55,11 @@ public class CopierThread extends Thread {
         this.copyTo = copyTo;
     }
 
-    public void run() {
+    @Override
+	public void run() {
         try {
-            System.out.println("Done copying files.");
             copy(copyFrom, copyTo);
+            System.out.println("Done copying files.");
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -96,6 +96,7 @@ public class IdToColor {
    			int mxp = (255-((color.getRed()-vec.getBlockY())*2))/2;
 			color = new Color(mxp,8,8);
 		}
+
 		return color;
 	}
 

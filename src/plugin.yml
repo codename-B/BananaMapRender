@@ -9,3 +9,6 @@ commands:
     description: Renders the chunk of the player
     usage: |
       /<command> range worldname - renders the chunk of the player.
+permissions:
+  bmr.render:
+    default: op
