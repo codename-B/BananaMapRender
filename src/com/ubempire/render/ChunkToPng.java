@@ -166,7 +166,7 @@ public class ChunkToPng {
             }
 
             BananaMapRender.logger.info("Map rendering: " + tileX + " " + tileZ + " DONE");
-
+            
             return true;
         }
 
