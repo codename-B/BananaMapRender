@@ -142,16 +142,21 @@ public class BananaMapRender extends JavaPlugin {
     }
 
     static ChunkSnapshot[] prepareRegionRow(World world, int x, int z, int row) {
-        Set<Chunk> chunksInUse = getChunksInUse(world);
-
         ChunkSnapshot[] region = new ChunkSnapshot[32];
+        Chunk[] chunks = new Chunk[98];
+        chunks[96] = world.getChunkAt(x * 32 + row, z * 32 - 1);
+        chunks[97] = world.getChunkAt(x * 32 + row, z * 32 + 32);
         for (int i = 0; i < 32; i++) {
             int cx = x * 32 + row, cz = z * 32 + i;
-            Chunk chunk = world.getChunkAt(cx, cz);
-            region[i] = chunk.getChunkSnapshot();
-            if (!chunksInUse.contains(chunk)) {
-                world.unloadChunkRequest(cx, cz);
-            }
+            chunks[i] = world.getChunkAt(cx, cz);
+            chunks[i + 32] = world.getChunkAt(cx - 1, cz);
+            chunks[i + 64] = world.getChunkAt(cx + 1, cz);
+        }
+        for (int i = 0; i < 32; i++) {
+            region[i] = chunks[i].getChunkSnapshot();
+        }
+        for (Chunk chunk : chunks) {
+        	world.unloadChunkRequest(chunk.getX(), chunk.getZ());
         }
         return region;
     }
