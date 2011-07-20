@@ -58,6 +58,13 @@ public class ChunkToPng {
         return tat;
     }
 
+    public boolean shouldMakeTile(int tileX, int tileZ, World world) {
+        String folder = plugin.getDir(world.getName());
+
+        return ageInHours(new File(folder + ((tileX)) + "," + ((tileZ)) + ".png"))
+        		> plugin.varExpirationHours();
+    }
+
     public boolean makeTile(int tileX, int tileZ, World world, ChunkSnapshot[][] region, boolean isNether) {
         String folder = plugin.getDir(world.getName());
 
@@ -75,6 +82,55 @@ public class ChunkToPng {
                     for (int x = 0; x < 16; x++)
                         for (int z = 0; z < 16; z++) {
                             Color current = getHighestBlockColor(x, z, region[cx][cz], isNether);
+                    		if (plugin.varDepthNormal()) {
+                    			int y = region[cx][cz].getHighestBlockYAt(x, z);
+                    			float normalX = 0;
+                    			float normalZ = 0;
+                    			final int NORMAL_RANGE = 5;
+
+                    			for (int _x = -NORMAL_RANGE; _x <= NORMAL_RANGE; _x++) {
+                    				int __x = cx * 16 + x + _x;
+                    				if (__x < 0 || __x >= X)
+                    					continue;
+                    				for (int _y = -NORMAL_RANGE; _y <= NORMAL_RANGE; _y++) {
+                    					if (_y + y < 0 || _y + y >= 128)
+                    						continue;
+                    					for (int _z = -NORMAL_RANGE; _z <= NORMAL_RANGE; _z++) {
+                            				int __z = cz * 16 + z + _z;
+                            				if (__z < 0 || __z >= Z)
+                            					continue;
+                            				int id = region[__x / 16][__z / 16].getBlockTypeId(__x % 16, y + _y, __z % 16);
+                    						if (id == 0 // Air
+                    								|| id == 17 || id == 18 // Trees
+                    								|| id == 6 || id == 31 || id == 32 || (id >= 37 && id <= 40)
+                    								|| id == 59 || id == 81 || id == 83 // Small plants
+                    								|| id == 50 || id == 63 || id == 68 || id == 69 || id == 75
+                    								|| id == 76 || id == 77 || id == 93 || id == 94) // Other small objects
+                    							continue;
+                    						if (_x != 0)
+                    							normalX -= (float) _y / (float) _x;
+                    						if (_z != 0)
+                    							normalZ -= (float) _y / (float) _z;
+                    					}
+                    				}
+                    			}
+
+                    			// Light comes from the north-northeast in this code
+                    			int variator = Math.round((2 * normalX - normalZ) / NORMAL_RANGE);
+                    			if (cx == 0)
+                    				variator /= 16 - x;
+                    			if (cx == 31)
+                    				variator /= x + 1;
+                    			if (cz == 0)
+                    				variator /= 16 - z;
+                    			if (cz == 31)
+                    				variator /= z + 1;
+                    			current = new Color(
+                    					Math.min(Math.max(current.getRed() + variator, 0), 255),
+                    					Math.min(Math.max(current.getGreen() + variator, 0), 255),
+                    					Math.min(Math.max(current.getBlue() + variator, 0), 255)
+                    					);
+                    		}
                             output.setPixel(cx * 16 + x, cz * 16 + z, new int[]{
                                     current.getRed(),
                                     current.getGreen(),

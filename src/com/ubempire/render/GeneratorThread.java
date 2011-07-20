@@ -35,6 +35,11 @@ public class GeneratorThread extends Thread {
 
     @Override
 	public void run() {
+        ChunkToPng chunkToPng = new ChunkToPng(plugin);
+        if (!chunkToPng.shouldMakeTile(tileX, tileZ, world)) {
+    	    done = true;
+    	    return;
+        }
     	int taskId = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new RegionGatherer(), 1, 10);
     	try {
     		synchronized (region) {
@@ -44,7 +49,7 @@ public class GeneratorThread extends Thread {
 		}
     	plugin.getServer().getScheduler().cancelTask(taskId);
     	
-        (new ChunkToPng(plugin)).makeTile(tileX, tileZ, world, region, nether);
+        chunkToPng.makeTile(tileX, tileZ, world, region, nether);
         done = true;
     }
 
