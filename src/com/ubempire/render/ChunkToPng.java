@@ -13,6 +13,7 @@
 package com.ubempire.render;
 
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
@@ -81,7 +82,7 @@ public class ChunkToPng {
                 for (int cz = 0; cz < 32; cz++)
                     for (int x = 0; x < 16; x++)
                         for (int z = 0; z < 16; z++) {
-                            Color current = getHighestBlockColor(x, z, region[cx][cz], isNether);
+                            Color current = getHighestBlockColor(x, z, region, cx, cz, isNether);
                     		if (plugin.varDepthNormal()) {
                     			int y = region[cx][cz].getHighestBlockYAt(x, z);
                     			float normalX = 0;
@@ -173,23 +174,44 @@ public class ChunkToPng {
         return false;
     }
 
-    public static Color getHighestBlockColor(int x, int z, ChunkSnapshot chunk, boolean isNether) {
+    public static Color getHighestBlockColor(int x, int z, ChunkSnapshot[][] region, int chunkX, int chunkZ, boolean isNether) {
+    	ChunkSnapshot chunk = region[chunkX][chunkZ];
         Color color = new Color(200, 80, 5);
         int highest;
         highest = chunk.getHighestBlockYAt(x, z);
         if (chunk.getBlockTypeId(x, highest, z) == 0) {
-            highest = chunk.getHighestBlockYAt(x, z) - 1;
+            highest--;
         }
         if (highest < 0) highest = 0;
         if (isNether) {
             highest = 90;
             int typeId = chunk.getBlockTypeId(x, highest, z);
             if (typeId == 0) color = new Color(120, 0, 0);
-        }
-        if (!isNether) {
+        } else {
             int ID = chunk.getBlockTypeId(x, highest, z);
             int ID2 = chunk.getBlockData(x, highest, z);
-            color = IdToColor.getColor(ID, ID2, new Vector(x, highest, z), chunk);
+            color = IdToColor.getColor(ID, ID2, new Vector(x, highest, z), region, chunkX, chunkZ);
+            if (ID == Material.WATER.getId() || ID == Material.STATIONARY_WATER.getId()) {
+            	int depth = 1;
+            	while (depth < 20 && highest - depth > 0
+            			&& (chunk.getBlockTypeId(x, highest - depth, z) == Material.WATER.getId()
+            			|| chunk.getBlockTypeId(x, highest - depth, z) == Material.STATIONARY_WATER.getId())) {
+            		depth++;
+            	}
+            	if (chunk.getBlockTypeId(x, highest - depth, z) != Material.WATER.getId()
+            			&& chunk.getBlockTypeId(x, highest - depth, z) != Material.STATIONARY_WATER.getId()) {
+            		Color color2 = IdToColor.getColor(
+            				chunk.getBlockTypeId(x, highest - depth, z),
+            				chunk.getBlockData(x, highest - depth, z),
+            				new Vector(x, highest - depth, z),
+            				region, chunkX, chunkZ);
+            		depth += 20;
+            		color = new Color(
+            				color.getRed() * depth / 40 + color2.getRed() * (40 - depth) / 40,
+            				color.getGreen() * depth / 40 + color2.getGreen() * (40 - depth) / 40,
+            				color.getBlue() * depth / 40 + color2.getBlue() * (40 - depth) / 40);
+            	}
+            }
         }
         return color;
     }
