@@ -13,7 +13,6 @@
 package com.ubempire.render;
 
 import org.bukkit.ChunkSnapshot;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
@@ -66,7 +65,7 @@ public class ChunkToPng {
         		> plugin.varExpirationHours();
     }
 
-    public boolean makeTile(int tileX, int tileZ, World world, ChunkSnapshot[][] region, boolean isNether) {
+    public boolean makeTile(int tileX, int tileZ, World world, RenderSnapshot[][] region, boolean isNether) {
         String folder = plugin.getDir(world.getName());
 
         file = new File(folder + ((tileX)) + "," + ((tileZ)) + ".png");
@@ -77,61 +76,13 @@ public class ChunkToPng {
             WritableRaster output = img.getRaster();
 
             BananaMapRender.logger.info("Map rendering: " + tileX + " " + tileZ + " START");
-
+            
             for (int cx = 0; cx < 32; cx++)
                 for (int cz = 0; cz < 32; cz++)
                     for (int x = 0; x < 16; x++)
                         for (int z = 0; z < 16; z++) {
-                            Color current = getHighestBlockColor(x, z, region, cx, cz, isNether);
-                    		if (plugin.varDepthNormal()) {
-                    			int y = region[cx][cz].getHighestBlockYAt(x, z);
-                    			float normalX = 0;
-                    			float normalZ = 0;
-                    			final int NORMAL_RANGE = 5;
-
-                    			for (int _x = -NORMAL_RANGE; _x <= NORMAL_RANGE; _x++) {
-                    				int __x = cx * 16 + x + _x;
-                    				if (__x < 0 || __x >= X)
-                    					continue;
-                    				for (int _y = -NORMAL_RANGE; _y <= NORMAL_RANGE; _y++) {
-                    					if (_y + y < 0 || _y + y >= 128)
-                    						continue;
-                    					for (int _z = -NORMAL_RANGE; _z <= NORMAL_RANGE; _z++) {
-                            				int __z = cz * 16 + z + _z;
-                            				if (__z < 0 || __z >= Z)
-                            					continue;
-                            				int id = region[__x / 16][__z / 16].getBlockTypeId(__x % 16, y + _y, __z % 16);
-                    						if (id == 0 // Air
-                    								|| id == 17 || id == 18 // Trees
-                    								|| id == 6 || id == 31 || id == 32 || (id >= 37 && id <= 40)
-                    								|| id == 59 || id == 81 || id == 83 // Small plants
-                    								|| id == 50 || id == 63 || id == 68 || id == 69 || id == 75
-                    								|| id == 76 || id == 77 || id == 93 || id == 94) // Other small objects
-                    							continue;
-                    						if (_x != 0)
-                    							normalX -= (float) _y / (float) _x;
-                    						if (_z != 0)
-                    							normalZ -= (float) _y / (float) _z;
-                    					}
-                    				}
-                    			}
-
-                    			// Light comes from the north-northeast in this code
-                    			int variator = Math.round((2 * normalX - normalZ) / NORMAL_RANGE);
-                    			if (cx == 0)
-                    				variator /= 16 - x;
-                    			if (cx == 31)
-                    				variator /= x + 1;
-                    			if (cz == 0)
-                    				variator /= 16 - z;
-                    			if (cz == 31)
-                    				variator /= z + 1;
-                    			current = new Color(
-                    					Math.min(Math.max(current.getRed() + variator, 0), 255),
-                    					Math.min(Math.max(current.getGreen() + variator, 0), 255),
-                    					Math.min(Math.max(current.getBlue() + variator, 0), 255)
-                    					);
-                    		}
+                            Color current = region[cx][cz].getColor(x, z);
+                            
                             output.setPixel(cx * 16 + x, cz * 16 + z, new int[]{
                                     current.getRed(),
                                     current.getGreen(),
@@ -167,51 +118,36 @@ public class ChunkToPng {
             }
 
             BananaMapRender.logger.info("Map rendering: " + tileX + " " + tileZ + " DONE");
-            
+            int qSize = plugin.threadQueue.size();
+            if(qSize<=1)
+            {
+            	long taken = System.currentTimeMillis()-plugin.started;
+            	System.out.println("Rendering complete: Took "+taken/1000+"s to complete : "+BananaMapRender.chunksRendered+" chunks rendered in total");
+            	BananaMapRender.chunksRendered=0;
+            }
             return true;
         }
 
         return false;
     }
 
-    public static Color getHighestBlockColor(int x, int z, ChunkSnapshot[][] region, int chunkX, int chunkZ, boolean isNether) {
-    	ChunkSnapshot chunk = region[chunkX][chunkZ];
+    public static Color getHighestBlockColor(int x, int z, ChunkSnapshot chunk, boolean isNether) {
         Color color = new Color(200, 80, 5);
         int highest;
         highest = chunk.getHighestBlockYAt(x, z);
         if (chunk.getBlockTypeId(x, highest, z) == 0) {
-            highest--;
+            highest = chunk.getHighestBlockYAt(x, z) - 1;
         }
         if (highest < 0) highest = 0;
         if (isNether) {
             highest = 90;
             int typeId = chunk.getBlockTypeId(x, highest, z);
             if (typeId == 0) color = new Color(120, 0, 0);
-        } else {
+        }
+        if (!isNether) {
             int ID = chunk.getBlockTypeId(x, highest, z);
             int ID2 = chunk.getBlockData(x, highest, z);
-            color = IdToColor.getColor(ID, ID2, new Vector(x, highest, z), region, chunkX, chunkZ);
-            if (ID == Material.WATER.getId() || ID == Material.STATIONARY_WATER.getId()) {
-            	int depth = 1;
-            	while (depth < 20 && highest - depth > 0
-            			&& (chunk.getBlockTypeId(x, highest - depth, z) == Material.WATER.getId()
-            			|| chunk.getBlockTypeId(x, highest - depth, z) == Material.STATIONARY_WATER.getId())) {
-            		depth++;
-            	}
-            	if (chunk.getBlockTypeId(x, highest - depth, z) != Material.WATER.getId()
-            			&& chunk.getBlockTypeId(x, highest - depth, z) != Material.STATIONARY_WATER.getId()) {
-            		Color color2 = IdToColor.getColor(
-            				chunk.getBlockTypeId(x, highest - depth, z),
-            				chunk.getBlockData(x, highest - depth, z),
-            				new Vector(x, highest - depth, z),
-            				region, chunkX, chunkZ);
-            		depth += 20;
-            		color = new Color(
-            				color.getRed() * depth / 40 + color2.getRed() * (40 - depth) / 40,
-            				color.getGreen() * depth / 40 + color2.getGreen() * (40 - depth) / 40,
-            				color.getBlue() * depth / 40 + color2.getBlue() * (40 - depth) / 40);
-            	}
-            }
+            color = IdToColor.getColor(ID, ID2, new Vector(x, highest, z), chunk);
         }
         return color;
     }

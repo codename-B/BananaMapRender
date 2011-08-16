@@ -21,9 +21,8 @@ public class IdToColor {
 
     protected static BananaMapRender plugin; 
     
-	public static Color getColor(int id, int damage, Vector vec, ChunkSnapshot[][] region, int chunkX, int chunkZ) {
-		ChunkSnapshot chunk = region[chunkX][chunkZ];
-		
+	public static Color getColor(int id, int damage, Vector vec, ChunkSnapshot chunk) {
+
 	    //Fetch color from default table or config
 	    Color color = plugin.varColor(id, damage);
 
@@ -39,36 +38,13 @@ public class IdToColor {
 		if((id == 8 || id == 9) && plugin.varDepthWater()) {
             int Y = vec.getBlockY();
     		int procID = id;
-    		double avgY = 0;
-    		int i = 0;
-    		for (int x = -5; x <= 5; x++) {
-    			int _x = chunkX * 16 + vec.getBlockX() + x;
-    			int cx = _x / 16;
-    			if (cx < 0 || cx > 31)
-    				continue;
-    			_x = (_x % 16 + 16) % 16;
-    			for (int z = -5; z <= 5; z++) {
-    				int _z = chunkZ * 16 + vec.getBlockZ() + z;
-        			int cz = _z / 16;
-        			if (cz < 0 || cz > 31)
-        				continue;
-        			_z = (_z % 16 + 16) % 16;
-    				ChunkSnapshot _chunk = region[cx][cz];
-    				vec.setY(Y);
-    	    		while(vec.getY()>1 && (procID == 8 || procID == 9)) {
-    	    			vec.setY(vec.getY() - 1);
-    	    			procID = _chunk.getBlockTypeId(_x, vec.getBlockY(), _z);
-    	    		}
-    	    		avgY += vec.getY();
-    	    		i++;
-    	    		procID = id;
-    			}
+    		while(vec.getY()>1 && (procID == 8 || procID == 9)) {
+    			vec.setY(vec.getY() - 1);
+    			procID = chunk.getBlockTypeId(vec.getBlockX(), vec.getBlockY(), vec.getBlockZ());
     		}
-    		if (i > 0)
-    			avgY /= i;
-            int newR = (int) ((18 - (Y - avgY)) * 4);
-            int newG = (int) ((18 - (Y - avgY)) * 7);
-            int newB = (int) ((18 - (Y - avgY)) * 16);
+            int newR = (18-(Y- vec.getBlockY()))*4;
+            int newG = (18-(Y- vec.getBlockY()))*7;
+            int newB = (18-(Y- vec.getBlockY()))*16;
             if(newR<0)newR=0;
             if(newG<0)newG=0;
             if(newB<0)newB=0;

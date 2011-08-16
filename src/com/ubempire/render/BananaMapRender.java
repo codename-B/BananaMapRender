@@ -15,6 +15,8 @@ package com.ubempire.render;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -26,7 +28,10 @@ import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class BananaMapRender extends JavaPlugin {
@@ -34,14 +39,16 @@ public class BananaMapRender extends JavaPlugin {
 
     Timer renderStarter;
     PlayerScript markups;
-
+    public long started;
+    public static int chunksRendered=0;
+    public static String worldname;
     int renderThreads;
     List<GeneratorThread> threadQueue;
-
+    
     Map<Integer, Color> colors;
     Map<Integer, List<Color>> multiColors;
     boolean depthNormal, showDepth, showWaterDepth, showLavaDepth;
-
+    ChunkLoader chunkLoader = new ChunkLoader(this);
     @Override
     public void onDisable() {
         final PluginDescriptionFile pdfFile = getDescription();
@@ -52,6 +59,18 @@ public class BananaMapRender extends JavaPlugin {
 
     @Override
     public void onEnable() {
+    	
+		File prop = new File("server.properties");
+		Properties props = new Properties();
+		try {
+			props.load(new FileReader(prop));
+			worldname = props.getProperty("level-name");
+		} catch (FileNotFoundException e) {
+			System.err.println(e.getMessage());
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+		}
+    	
         IdToColor.plugin = this;
         colors = new HashMap<Integer, Color>();
         multiColors = new HashMap<Integer, List<Color>>();
@@ -81,7 +100,9 @@ public class BananaMapRender extends JavaPlugin {
                 chunkToRender();
             }
         }, 0, varTileCheckerFrequency() * 60 * 20);
-
+        PluginManager pm = getServer().getPluginManager();
+        pm.registerEvent(Event.Type.CHUNK_LOAD, chunkLoader, Priority.Monitor, this);
+        pm.registerEvent(Event.Type.CHUNK_UNLOAD, chunkLoader, Priority.Monitor, this);
         final PluginDescriptionFile pdfFile = getDescription();
         System.out.println("[" + (pdfFile.getName()) + "]" + " version " + pdfFile.getVersion() + " is enabled!");
     }
@@ -120,8 +141,15 @@ public class BananaMapRender extends JavaPlugin {
                 double playerZ = player.getLocation().getZ();
                 int chunkx = (int) (Math.round(playerX / 512));
                 int chunkz = (int) (Math.round(playerZ / 512));
+                if(renderThreads==0)
+                {
+
+                    started = System.currentTimeMillis();
+                
+                }
+                
                 threadQueue.add(new GeneratorThread(this, chunkx, chunkz, world));
-            }
+                }
         }
     }
 
@@ -141,28 +169,33 @@ public class BananaMapRender extends JavaPlugin {
         return chunks;
     }
 
-    static ChunkSnapshot[] prepareRegionRow(World world, int x, int z, int row) {
-        ChunkSnapshot[] region = new ChunkSnapshot[32];
-        Chunk[] chunks = new Chunk[98];
-        chunks[96] = world.getChunkAt(x * 32 + row, z * 32 - 1);
-        chunks[97] = world.getChunkAt(x * 32 + row, z * 32 + 32);
+    static RenderSnapshot[] prepareRegionRow(World world, int x, int z, int row) {
+        Set<Chunk> chunksInUse = getChunksInUse(world);
+        chunksRendered++;
+        RenderSnapshot[] region = new RenderSnapshot[32];
         for (int i = 0; i < 32; i++) {
             int cx = x * 32 + row, cz = z * 32 + i;
-            chunks[i] = world.getChunkAt(cx, cz);
-            chunks[i + 32] = world.getChunkAt(cx - 1, cz);
-            chunks[i + 64] = world.getChunkAt(cx + 1, cz);
-        }
-        for (int i = 0; i < 32; i++) {
-            region[i] = chunks[i].getChunkSnapshot();
-        }
-        for (Chunk chunk : chunks) {
-        	world.unloadChunkRequest(chunk.getX(), chunk.getZ());
+            Chunk chunk = world.getChunkAt(cx, cz);
+            Chunk xup = world.getChunkAt(cx+1,cz);
+            Chunk xdown = world.getChunkAt(cx-1,cz);
+            Chunk zup = world.getChunkAt(cx,cz+1);
+            Chunk zdown = world.getChunkAt(cx,cz-1);
+            Chunk[] loaded = {chunk,xup,xdown,zup,zdown};
+            ChunkSnapshot[] snaps = {chunk.getChunkSnapshot(),xup.getChunkSnapshot(),xdown.getChunkSnapshot(),zup.getChunkSnapshot(),zdown.getChunkSnapshot()};
+            region[i] = new RenderSnapshot(world, snaps);
+            for(Chunk sp : loaded)
+            {
+            if (!chunksInUse.contains(sp)) {
+                world.unloadChunk(sp.getX(),sp.getZ());
+            }
+            }
+    
         }
         return region;
     }
 
-    static ChunkSnapshot[][] prepareRegion(World world, int x, int z) {
-        ChunkSnapshot[][] region = new ChunkSnapshot[32][32];
+    static RenderSnapshot[][] prepareRegion(World world, int x, int z) {
+        RenderSnapshot[][] region = new RenderSnapshot[32][32];
         for (int row = 0; row < 32; row++) {
         	region[row] = prepareRegionRow(world, x, z, 0);
         }
@@ -183,6 +216,9 @@ public class BananaMapRender extends JavaPlugin {
 
                 if (args.length > 0 && args[0].equalsIgnoreCase("length")) {
                     sender.sendMessage("The render queue has " + threadQueue.size() + " (" + renderThreads + " running) regions.");
+                    long currentTime = System.currentTimeMillis();
+                    long taken = currentTime-started;
+                    sender.sendMessage("It has taken "+taken/1000+"s so far.");
                     return true;
                 }
 
@@ -213,7 +249,7 @@ public class BananaMapRender extends JavaPlugin {
                     //Create directory
                     String worldDir = getDir(world.getName());
                     markups.updateMapMarkers(world);
-
+                    this.started=System.currentTimeMillis();
                     sender.sendMessage(ChatColor.GREEN + "Starting map render");
                     System.out.println("Start copying template files...");
                     new CopierThread(new File(getDataFolder(), "template"), new File(worldDir)).start();

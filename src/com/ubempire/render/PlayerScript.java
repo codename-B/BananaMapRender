@@ -35,11 +35,6 @@ public class PlayerScript {
         directory = plugin.getDir();
     }
 
-    private static boolean isDay(World world) {
-        long time = world.getTime() / 1000;
-        return time < 10;
-    }
-
     private static double[] convertLocation(double d, double e) {
         double offset = 1;
         return new double[]{d / -512.0 + offset, e / -512.0 + offset};
@@ -82,9 +77,6 @@ public class PlayerScript {
             out.print("map.setView(new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + "),9);");
             if (world.getEnvironment() == World.Environment.NETHER) {
                 out.print("document.getElementById('time').innerHTML=' Eternity';");
-            } else {
-                if (isDay(world)) out.print("document.getElementById('time').innerHTML=' Day';");
-                else out.print("document.getElementById('time').innerHTML=' Night';");
             }
 
 
@@ -104,12 +96,7 @@ public class PlayerScript {
                 for (int i = 0; i < 2; i++)
                     x0z0[i] = Integer.parseInt(XK[i]);
                 out.print("var imageBounds = new L.LatLngBounds(new L.LatLng(" + (0 - x0z0[0]) + "," + (0 - x0z0[1]) + "),new L.LatLng(" + (0 - x0z0[0]) + "+1," + (0 - x0z0[1]) + "+1));var image = new L.ImageOverlay(\"" + XK[0] + "," + XK[1] + ".png\", imageBounds);map.addLayer(image);");
-                if (plugin.showNightTiles()) {
-                    /* Show Night Tiles if option is enabled in config.txt */
-                    if (!isDay(world)) {
-                        out.print("var imageBounds = new L.LatLngBounds(new L.LatLng(" + (0 - x0z0[0]) + "," + (0 - x0z0[1]) + "),new L.LatLng(" + (0 - x0z0[0]) + "+1," + (0 - x0z0[1]) + "+1));var image = new L.ImageOverlay(\"images/night.png\", imageBounds);map.addLayer(image);");
-                    }
-                }
+
             }
 
             Configuration c;
@@ -173,15 +160,12 @@ public class PlayerScript {
                             out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Spawner.png',iconSize: new L.Point(" + 20 + "," + 20 + "),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + "),popupAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + ")});var icon = new MyIcon();var markerLocation = new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + ");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);");
                         }
                         if (b instanceof Sign) {
-                            Pattern signRegex = plugin.getSignRegex();
                             String[] signLines = ((Sign) b).getLines();
                             Boolean signMatches = false;
-                            for (String line : signLines) {
-                                    if (signRegex.matcher(line).matches()) {
-                                        signMatches = true;
-                                        break;
-                                    }
-                            }
+                            if(signLines.length>0)
+                            {
+                            if(signLines[0].equalsIgnoreCase("[BMR]") && plugin.varTileEntitiesSigns())
+                            {
                             if (signLines.length > 0 && signMatches && plugin.varTileEntitiesSigns()) {
                                 XZ = convertLocation(b.getBlock().getLocation().getX(), b.getBlock().getLocation().getZ());
                                 out.print("var MyIcon = L.Icon.extend({iconUrl: 'entity/Sign.png',iconSize: new L.Point(" + 32 + "," + 32 + "),shadowSize: new L.Point(0, 0),iconAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + "),popupAnchor: new L.Point(" + (XZ[0]) + "," + (XZ[1]) + ")});var icon = new MyIcon();var markerLocation = new L.LatLng(" + (XZ[0]) + ", " + (XZ[1]) + ");var marker = new L.Marker(markerLocation, {icon: icon});map.addLayer(marker);marker.bindPopup(\"");
@@ -190,6 +174,8 @@ public class PlayerScript {
                                     if (!signLine.equals(""))
                                         out.print(signLine + "<br/>");
                                 out.print("\");");
+                            }
+                            }
                             }
                         }
                     }
